@@ -95,7 +95,6 @@
     input:checked + .slider { background-color: #00ffcc; border-color: #00ffcc; }
     input:checked + .slider:before { transform: translateX(18px); background-color: #0a0c13; }
 
-    /* VISUALIZER DISPLAY STYLES */
     .visualizer-container {
       position: relative;
       width: 100%; height: 14vh; min-height: 80px;
@@ -126,7 +125,6 @@
     }
     audio { width: 100%; height: 28px; }
 
-    /* RESET / REFRESH DECK BUTTON */
     .btn-reset-deck {
       display: none; width: 100%; background: #00ffcc; color: #08090e;
       border: none; padding: 6px; border-radius: 6px; font-size: 0.75rem;
@@ -135,7 +133,6 @@
     }
     .btn-reset-deck:hover { background: #00e6b8; }
 
-    /* FOLDER CONTROLS */
     .folder-controls {
       display: none; align-items: center; justify-content: space-between; gap: 6px;
     }
@@ -192,6 +189,7 @@
       border-radius: 4px; font-size: 0.6rem; cursor: pointer; font-weight: bold;
     }
     .btn-drive:hover { background: #00ffcc; color: #08090e; }
+    .btn-drive:disabled { opacity: 0.4; cursor: not-allowed; background: #1e2436; color: #8f9bb3; border-color: #282d42; }
 
     .eq-sliders { display: flex; gap: 2px; overflow-x: auto; flex: 1; align-items: center; }
     .slider-group { display: flex; flex-direction: column; align-items: center; min-width: 14px; height: 100%; justify-content: space-between; flex: 1; }
@@ -306,9 +304,9 @@
           <h2 class="left-title" id="leftEqTitle">Left Channel EQ</h2>
           <div class="drive-btn-group">
             <select id="presetListLeft" class="preset-select" onchange="loadSelectedPreset('left')">
-              <option value="">-- Presets --</option>
+              <option value="" disabled selected>-- Select Preset --</option>
             </select>
-            <button class="btn-drive" onclick="savePresetToDrive('left')">💾 Save</button>
+            <button class="btn-drive" id="saveBtnLeft" onclick="savePresetToDrive('left')" disabled>💾 Save</button>
           </div>
         </div>
         <div class="eq-sliders" id="eqSlidersLeft"></div>
@@ -319,9 +317,9 @@
           <h2 class="right-title">Right Channel EQ</h2>
           <div class="drive-btn-group">
             <select id="presetListRight" class="preset-select" onchange="loadSelectedPreset('right')">
-              <option value="">-- Presets --</option>
+              <option value="" disabled selected>-- Select Preset --</option>
             </select>
-            <button class="btn-drive" onclick="savePresetToDrive('right')">💾 Save</button>
+            <button class="btn-drive" id="saveBtnRight" onclick="savePresetToDrive('right')" disabled>💾 Save</button>
           </div>
         </div>
         <div class="eq-sliders" id="eqSlidersRight"></div>
@@ -420,6 +418,7 @@
     let audioCtx, analyser;
     let filtersLeft = [], filtersRight = [];
     let leftSliders = [], rightSliders = [];
+    let loadedLeftValues = [], loadedRightValues = [];
     let tabGainNode, filesMasterGain, mainMixGain;
     let gainNode1, gainNode2;
     let isAudioCtxInitialized = false;
@@ -495,7 +494,6 @@
       }
     });
 
-    /* DECK REFRESH / RESET FUNCTION */
     function resetDeck(deckNum) {
       if (deckNum === 1) {
         audio1.pause();
@@ -569,6 +567,7 @@
           if (filtersLeft[index]) filtersLeft[index].gain.value = val;
           if (filtersRight[index]) filtersRight[index].gain.value = val;
         });
+        checkSliderChanges('right');
       }
     }
 
@@ -704,6 +703,21 @@
 
     crossfader.addEventListener('input', updateCrossfader);
 
+    function checkSliderChanges(channel) {
+      const sliders = channel === 'left' ? leftSliders : rightSliders;
+      const loadedValues = channel === 'left' ? loadedLeftValues : loadedRightValues;
+      const saveBtn = document.getElementById(channel === 'left' ? 'saveBtnLeft' : 'saveBtnRight');
+
+      let changed = false;
+      if (loadedValues.length === 0) {
+        changed = sliders.some(s => parseFloat(s.value) !== 0);
+      } else {
+        changed = sliders.some((s, idx) => parseFloat(s.value) !== loadedValues[idx]);
+      }
+
+      saveBtn.disabled = !changed;
+    }
+
     function buildEqualizerUI(container, filtersArray, slidersArray, isLeft) {
       frequencies.forEach((freq, index) => {
         const group = document.createElement('div');
@@ -730,6 +744,16 @@
               if (filtersLeft[index]) filtersLeft[index].gain.value = val;
             }
           }
+
+          // প্রিসেট ম্যানুয়ালি নাড়ালেই সিলেক্ট করা ড্রপডাউন রিসেট হয়ে খালি হবে
+          const channelKey = isLeft ? 'left' : 'right';
+          const selectElem = document.getElementById(channelKey === 'left' ? 'presetListLeft' : 'presetListRight');
+          if (selectElem && selectElem.value !== "") {
+            selectElem.value = "";
+          }
+
+          checkSliderChanges(channelKey);
+          if (!stereoToggle.checked) checkSliderChanges('right');
         });
 
         slidersArray.push(slider);
@@ -742,24 +766,22 @@
     buildEqualizerUI(eqContainerLeft, filtersLeft, leftSliders, true);
     buildEqualizerUI(eqContainerRight, filtersRight, rightSliders, false);
 
-    async function fetchAllPresets() {
+    async function fetchAllPresets(selectChannel = null, selectPresetName = null) {
       if (!currentPassword) return;
 
       const selectLeft = document.getElementById('presetListLeft');
       const selectRight = document.getElementById('presetListRight');
-      
-      selectLeft.innerHTML = '<option value="">Loading...</option>';
-      selectRight.innerHTML = '<option value="">Loading...</option>';
 
       try {
         const res = await fetch(`${GAS_WEB_APP_URL}?action=list&password=${encodeURIComponent(currentPassword)}`);
         const data = await res.json();
 
-        const optionsHTML = '<option value="">-- Select Preset --</option>';
-        selectLeft.innerHTML = optionsHTML;
-        selectRight.innerHTML = optionsHTML;
+        selectLeft.innerHTML = '<option value="" disabled selected>-- Select Preset --</option>';
+        selectRight.innerHTML = '<option value="" disabled selected>-- Select Preset --</option>';
 
         if (data.status === "success" && data.presets.length > 0) {
+          let matchedFilename = null;
+
           data.presets.forEach(item => {
             const opt1 = document.createElement('option');
             opt1.value = item.filename;
@@ -770,7 +792,17 @@
             opt2.value = item.filename;
             opt2.innerText = item.presetName;
             selectRight.appendChild(opt2);
+
+            if (selectPresetName && item.presetName.toLowerCase() === selectPresetName.toLowerCase()) {
+              matchedFilename = item.filename;
+            }
           });
+
+          if (selectChannel && matchedFilename) {
+            const targetSelect = selectChannel === 'left' ? selectLeft : selectRight;
+            targetSelect.value = matchedFilename;
+            loadSelectedPreset(selectChannel);
+          }
         }
       } catch (err) {
         console.error("Error fetching presets:", err);
@@ -780,9 +812,13 @@
     async function savePresetToDrive(channel) {
       if (!currentPassword) return;
 
+      const saveBtn = document.getElementById(channel === 'left' ? 'saveBtnLeft' : 'saveBtnRight');
+      if (saveBtn.disabled) return;
+
       const presetName = prompt(`Enter name for Preset:`);
       if (!presetName || presetName.trim() === "") return;
 
+      const cleanPresetName = presetName.trim();
       const sliders = channel === 'left' ? leftSliders : rightSliders;
       const values = sliders.map(s => parseFloat(s.value));
 
@@ -792,13 +828,21 @@
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({
             password: currentPassword,
-            presetName: presetName,
+            presetName: cleanPresetName,
             values: values
           })
         });
 
-        alert(`Preset "${presetName}" saved!`);
-        setTimeout(fetchAllPresets, 1000);
+        alert(`Preset "${cleanPresetName}" saved!`);
+        
+        if (channel === 'left') {
+          loadedLeftValues = [...values];
+        } else {
+          loadedRightValues = [...values];
+        }
+        checkSliderChanges(channel);
+
+        setTimeout(() => fetchAllPresets(channel, cleanPresetName), 1000);
       } catch (err) {
         alert("Error saving preset: " + err);
       }
@@ -823,6 +867,13 @@
             if (sliders[i]) sliders[i].value = val;
             if (filters[i]) filters[i].gain.value = val;
           });
+
+          if (channel === 'left') {
+            loadedLeftValues = [...data.values];
+          } else {
+            loadedRightValues = [...data.values];
+          }
+          checkSliderChanges(channel);
 
           if (!stereoToggle.checked) {
             syncMonoEqualizer();
@@ -919,24 +970,20 @@
 
     renderVisualizer();
 
-    // ১. মাউসের মাধ্যমে রাইট-ক্লিক (Context Menu) বন্ধ করা
     document.addEventListener('contextmenu', function (e) {
       e.preventDefault();
     });
 
-    // ২. টেক্সট সিলেকশন (Select) বন্ধ করা
     document.addEventListener('selectstart', function (e) {
       e.preventDefault();
     });
 
-    // ৩. কিবোর্ড শর্টকাটের সাহায্যে কপি করা বন্ধ করা (Ctrl+C, Ctrl+A, Ctrl+U, Ctrl+S)
     document.addEventListener('keydown', function (e) {
       if (e.ctrlKey && ['c', 'a', 'u', 's', 'C', 'A', 'U', 'S'].includes(e.key)) {
         e.preventDefault();
       }
     });
 
-    // ৪. কিবোর্ড শর্টকাট দিয়ে Inspect Element (F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C) বন্ধ করা
     document.addEventListener('keydown', function (e) {
       if (e.key === 'F12') {
         e.preventDefault();
