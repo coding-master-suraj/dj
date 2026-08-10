@@ -10,6 +10,10 @@
       width: 100vw; height: 100vh; overflow: hidden;
       background: radial-gradient(circle at center, #131622 0%, #08090e 100%);
       color: #e1e6f0; font-family: 'Segoe UI', system-ui, sans-serif;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
     }
 
     #lockScreen {
@@ -122,6 +126,15 @@
     }
     audio { width: 100%; height: 28px; }
 
+    /* RESET / REFRESH DECK BUTTON */
+    .btn-reset-deck {
+      display: none; width: 100%; background: #00ffcc; color: #08090e;
+      border: none; padding: 6px; border-radius: 6px; font-size: 0.75rem;
+      font-weight: bold; cursor: pointer; text-align: center;
+      box-shadow: 0 0 8px rgba(0, 255, 204, 0.4); margin-bottom: 2px;
+    }
+    .btn-reset-deck:hover { background: #00e6b8; }
+
     /* FOLDER CONTROLS */
     .folder-controls {
       display: none; align-items: center; justify-content: space-between; gap: 6px;
@@ -196,15 +209,6 @@
       .eq-container { height: 42vh; }
       .switches-wrapper { width: 100%; justify-content: space-between; }
     }
-
-.body {
-  -webkit-user-select: none; /* Safari */
-  -moz-user-select: none;    /* Firefox */
-  -ms-user-select: none;     /* IE / Edge */
-  user-select: none;         /* Chrome & standard browsers */
-}
-
-
   </style>
 </head>
 <body>
@@ -264,6 +268,7 @@
       <div class="player-card p1" id="deck1Card">
         <h3><span id="deck1Title">Deck 1</span> <span id="volVal1">100%</span></h3>
         <input type="file" id="file1" accept="audio/*">
+        <button id="resetDeck1Btn" class="btn-reset-deck" onclick="resetDeck(1)">➕ Add New File</button>
         
         <div class="folder-controls" id="folderControls">
           <button class="folder-nav-btn" onclick="playPrevTrack()">⏮</button>
@@ -277,6 +282,7 @@
       <div class="player-card p2" id="deck2Card">
         <h3>Deck 2 <span id="volVal2">100%</span></h3>
         <input type="file" id="file2" accept="audio/*">
+        <button id="resetDeck2Btn" class="btn-reset-deck" onclick="resetDeck(2)">➕ Add New File</button>
         <audio id="audio2" controls></audio>
       </div>
     </div>
@@ -339,7 +345,6 @@
       }
     }
 
-    /* Fullscreen স্টেট চেঞ্জ হলে বাটন টেক্সট অটোমেটিক আপডেট করার জন্য লিসেনার */
     document.addEventListener('fullscreenchange', () => {
       const btn = document.getElementById('fullscreenBtn');
       if (document.fullscreenElement) {
@@ -388,6 +393,8 @@
     const audio2 = document.getElementById('audio2');
     const file1 = document.getElementById('file1');
     const file2 = document.getElementById('file2');
+    const resetDeck1Btn = document.getElementById('resetDeck1Btn');
+    const resetDeck2Btn = document.getElementById('resetDeck2Btn');
     const crossfader = document.getElementById('crossfader');
     const crossfaderStatus = document.getElementById('crossfaderStatus');
     const volVal1 = document.getElementById('volVal1');
@@ -426,6 +433,7 @@
         crossfaderCard.style.display = 'block';
         deck1Title.innerText = "Deck 1";
         folderControls.style.display = 'none';
+        resetDeck1Btn.innerText = "➕ Add New File";
 
         file1.removeAttribute('webkitdirectory');
         file1.removeAttribute('directory');
@@ -434,10 +442,13 @@
         crossfaderCard.style.display = 'none';
         deck1Title.innerText = "Folder Audio Player";
         folderControls.style.display = 'flex';
+        resetDeck1Btn.innerText = "➕ Add New Folder";
 
         file1.setAttribute('webkitdirectory', '');
         file1.setAttribute('directory', '');
       }
+      resetDeck(1);
+      resetDeck(2);
     });
 
     file1.addEventListener('change', function() {
@@ -455,6 +466,9 @@
 
           currentFolderIndex = 0;
           playSelectedTrack(0);
+
+          file1.style.display = 'none';
+          resetDeck1Btn.style.display = 'block';
         } else {
           alert("No audio files found in selected folder!");
         }
@@ -463,9 +477,45 @@
           audio1.src = URL.createObjectURL(this.files[0]);
           audio1.play();
           initAudioEngine();
+
+          file1.style.display = 'none';
+          resetDeck1Btn.style.display = 'block';
         }
       }
     });
+
+    file2.addEventListener('change', function() {
+      if (this.files.length > 0) {
+        audio2.src = URL.createObjectURL(this.files[0]);
+        audio2.play();
+        initAudioEngine();
+
+        file2.style.display = 'none';
+        resetDeck2Btn.style.display = 'block';
+      }
+    });
+
+    /* DECK REFRESH / RESET FUNCTION */
+    function resetDeck(deckNum) {
+      if (deckNum === 1) {
+        audio1.pause();
+        audio1.removeAttribute('src');
+        audio1.load();
+        file1.value = "";
+        file1.style.display = 'block';
+        resetDeck1Btn.style.display = 'none';
+
+        folderAudioFiles = [];
+        folderPlaylist.innerHTML = "";
+      } else if (deckNum === 2) {
+        audio2.pause();
+        audio2.removeAttribute('src');
+        audio2.load();
+        file2.value = "";
+        file2.style.display = 'block';
+        resetDeck2Btn.style.display = 'none';
+      }
+    }
 
     function playSelectedTrack(index) {
       index = parseInt(index);
@@ -545,14 +595,6 @@
         console.error("Tab Capture Failed: ", err);
       }
     }
-
-    file2.addEventListener('change', function() {
-      if (this.files.length > 0) {
-        audio2.src = URL.createObjectURL(this.files[0]);
-        audio2.play();
-        initAudioEngine();
-      }
-    });
 
     tabAudioToggle.addEventListener('change', function() {
       if (tabGainNode) tabGainNode.gain.value = this.checked ? 1 : 0;
@@ -876,42 +918,33 @@
     }
 
     renderVisualizer();
- 
- 
- 
- // ১. মাউসের মাধ্যমে রাইট-ক্লিক (Context Menu) বন্ধ করা
-document.addEventListener('contextmenu', function (e) {
-  e.preventDefault();
-});
 
-// ২. টেক্সট সিলেকশন (Select) বন্ধ করা
-document.addEventListener('selectstart', function (e) {
-  e.preventDefault();
-});
+    // ১. মাউসের মাধ্যমে রাইট-ক্লিক (Context Menu) বন্ধ করা
+    document.addEventListener('contextmenu', function (e) {
+      e.preventDefault();
+    });
 
-// ৩. কিবোর্ড শর্টকাটের সাহায্যে কপি করা বন্ধ করা (Ctrl+C, Ctrl+A, Ctrl+U, Ctrl+S)
-document.addEventListener('keydown', function (e) {
-  // Ctrl+C, Ctrl+A, Ctrl+U, Ctrl+S ট্র্যাপ করার জন্য
-  if (e.ctrlKey && ['c', 'a', 'u', 's', 'C', 'A', 'U', 'S'].includes(e.key)) {
-    e.preventDefault();
-  }
-});
+    // ২. টেক্সট সিলেকশন (Select) বন্ধ করা
+    document.addEventListener('selectstart', function (e) {
+      e.preventDefault();
+    });
 
-// ৪. কিবোর্ড শর্টকাট দিয়ে Inspect Element (F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C) বন্ধ করা
-document.addEventListener('keydown', function (e) {
-  // F12 Key
-  if (e.key === 'F12') {
-    e.preventDefault();
-  }
-  // Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C
-  if (e.ctrlKey && e.shiftKey && ['i', 'j', 'c', 'I', 'J', 'C'].includes(e.key)) {
-    e.preventDefault();
-  }
-});
- 
- 
- 
- </script>
-  
+    // ৩. কিবোর্ড শর্টকাটের সাহায্যে কপি করা বন্ধ করা (Ctrl+C, Ctrl+A, Ctrl+U, Ctrl+S)
+    document.addEventListener('keydown', function (e) {
+      if (e.ctrlKey && ['c', 'a', 'u', 's', 'C', 'A', 'U', 'S'].includes(e.key)) {
+        e.preventDefault();
+      }
+    });
+
+    // ৪. কিবোর্ড শর্টকাট দিয়ে Inspect Element (F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C) বন্ধ করা
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'F12') {
+        e.preventDefault();
+      }
+      if (e.ctrlKey && e.shiftKey && ['i', 'j', 'c', 'I', 'J', 'C'].includes(e.key)) {
+        e.preventDefault();
+      }
+    });
+  </script>
 </body>
 </html>
