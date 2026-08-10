@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Full Display Dual Source DJ Console</title>
+  <title>Full Display DJ Console</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
@@ -11,30 +11,72 @@
       background: radial-gradient(circle at center, #131622 0%, #08090e 100%);
       color: #e1e6f0; font-family: 'Segoe UI', system-ui, sans-serif;
     }
+
+    #lockScreen {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(8, 9, 14, 0.96); backdrop-filter: blur(15px);
+      display: flex; justify-content: center; align-items: center;
+      z-index: 9999; flex-direction: column; gap: 15px;
+    }
+    .lock-box {
+      background: #151824; border: 1px solid #00ffcc; padding: 25px;
+      border-radius: 12px; text-align: center; box-shadow: 0 0 20px rgba(0,255,204,0.2);
+      max-width: 320px; width: 90%;
+    }
+    .lock-box h2 { color: #00ffcc; font-size: 1.2rem; margin-bottom: 12px; }
+    .lock-box input {
+      width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #282d42;
+      background: #0a0c13; color: #fff; text-align: center; font-size: 1.1rem;
+      outline: none; margin-bottom: 12px;
+    }
+    .lock-box button {
+      width: 100%; padding: 10px; border-radius: 6px; border: none;
+      background: #00ffcc; color: #08090e; font-weight: bold; cursor: pointer;
+      font-size: 0.9rem;
+    }
+    #lockError { color: #ff007f; font-size: 0.75rem; min-height: 15px; }
+
     .app-container {
       width: 100%; height: 100%; padding: 10px;
       display: flex; flex-direction: column; justify-content: space-between; gap: 8px;
     }
-    .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 0 4px; flex-shrink: 0; flex-wrap: wrap; gap: 6px; }
+    
+    .top-bar { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      padding: 6px 8px; 
+      flex-shrink: 0; 
+      flex-wrap: wrap; 
+      gap: 8px; 
+      margin-top: 5px;
+    }
     h1 { color: #00ffcc; text-shadow: 0 0 10px rgba(0, 255, 204, 0.5); font-size: clamp(0.9rem, 2vw, 1.2rem); text-transform: uppercase; }
     
+    .top-bar-btns { display: flex; gap: 6px; align-items: center; }
+
     .btn-capture {
       background: #00ffcc; color: #0a0c13; border: none; padding: 6px 12px;
       border-radius: 4px; font-size: 0.75rem; font-weight: bold; cursor: pointer;
       box-shadow: 0 0 8px rgba(0, 255, 204, 0.4);
     }
-
-    /* Source Control Switch Section */
-    .switches-wrapper {
-      display: flex; gap: 10px; align-items: center;
+    .btn-fullscreen {
+      background: #1e2436; color: #00ffcc; border: 1px solid #00ffcc; padding: 5px 10px;
+      border-radius: 4px; font-size: 0.75rem; font-weight: bold; cursor: pointer;
     }
+    .btn-fullscreen:hover { background: #00ffcc; color: #08090e; }
 
+    .switches-wrapper { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
     .source-switch-box {
       display: flex; align-items: center; gap: 6px;
       background: rgba(255, 204, 0, 0.08); border: 1px solid #ffcc00;
-      padding: 4px 10px; border-radius: 20px;
+      padding: 4px 8px; border-radius: 20px;
     }
-    .source-switch-box label.title { font-size: 0.68rem; color: #ffcc00; font-weight: bold; }
+    .source-switch-box.stereo-box {
+      background: rgba(0, 255, 204, 0.08); border-color: #00ffcc;
+    }
+    .source-switch-box label.title { font-size: 0.65rem; color: #ffcc00; font-weight: bold; }
+    .source-switch-box.stereo-box label.title { color: #00ffcc; }
     
     .switch { position: relative; display: inline-block; width: 38px; height: 20px; }
     .switch input { opacity: 0; width: 0; height: 0; }
@@ -49,84 +91,143 @@
     input:checked + .slider { background-color: #00ffcc; border-color: #00ffcc; }
     input:checked + .slider:before { transform: translateX(18px); background-color: #0a0c13; }
 
+    /* VISUALIZER DISPLAY STYLES */
     .visualizer-container {
-      width: 100%; height: 12vh; min-height: 50px; background: #030407;
-      border: 1px solid #00ffcc; border-radius: 8px; box-shadow: 0 0 15px rgba(0, 255, 204, 0.2);
-      overflow: hidden; flex-shrink: 0;
+      position: relative;
+      width: 100%; height: 14vh; min-height: 80px;
+      background: #000000;
+      border-radius: 10px;
+      overflow: hidden;
+      flex-shrink: 0;
+      padding: 2px;
+      border: 1px solid #1a2233;
+      box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.9), 0 0 15px rgba(0, 255, 204, 0.1);
     }
+
     canvas { width: 100%; height: 100%; display: block; }
 
     .players-wrapper { display: flex; gap: 10px; width: 100%; flex: 1; min-height: 0; }
     .player-card {
       flex: 1; background: rgba(21, 24, 36, 0.8); backdrop-filter: blur(8px);
-      padding: 12px; border-radius: 10px; border: 1px solid #282d42;
-      display: flex; flex-direction: column; justify-content: center; gap: 8px; min-width: 0;
+      padding: 8px 12px; border-radius: 10px; border: 1px solid #282d42;
+      display: flex; flex-direction: column; justify-content: center; gap: 6px; min-width: 0;
+      transition: all 0.3s ease;
     }
     .player-card.p1 h3 { color: #ff007f; font-size: clamp(0.85rem, 1.8vw, 1.1rem); display: flex; justify-content: space-between; }
     .player-card.p2 h3 { color: #00bfff; font-size: clamp(0.85rem, 1.8vw, 1.1rem); display: flex; justify-content: space-between; }
     
     input[type="file"] {
       display: block; width: 100%; color: #b0b9d0; font-size: 0.75rem;
-      background: #0a0c13; padding: 8px; border-radius: 6px; border: 1px solid #282d42; cursor: pointer;
+      background: #0a0c13; padding: 6px; border-radius: 6px; border: 1px solid #282d42; cursor: pointer;
     }
-    audio { width: 100%; height: 32px; }
+    audio { width: 100%; height: 28px; }
+
+    /* FOLDER CONTROLS */
+    .folder-controls {
+      display: none; align-items: center; justify-content: space-between; gap: 6px;
+    }
+    .folder-nav-btn {
+      background: #1e2436; color: #00ffcc; border: 1px solid #00ffcc; padding: 4px 8px;
+      border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: bold;
+    }
+    .folder-nav-btn:hover { background: #00ffcc; color: #08090e; }
+    .folder-track-select {
+      flex: 1; background: #0a0c13; color: #00ffcc; border: 1px solid #282d42;
+      padding: 4px; border-radius: 4px; font-size: 0.7rem; outline: none; text-overflow: ellipsis;
+    }
 
     .crossfader-card {
-      background: rgba(21, 24, 36, 0.85); padding: 8px 14px; border-radius: 10px;
-      border: 1px solid #282d42; text-align: center; flex-shrink: 0;
+      background: rgba(21, 24, 36, 0.85); padding: 6px 14px; border-radius: 10px;
+      border: 1px solid #282d42; text-align: center; flex-shrink: 0; transition: all 0.3s ease;
     }
-    .crossfader-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+    .crossfader-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; }
     .crossfader-header h3 { font-size: clamp(0.8rem, 1.3vw, 0.95rem); color: #00ffcc; }
-    .fader-labels { display: flex; justify-content: space-between; font-weight: bold; font-size: 0.7rem; margin-bottom: 4px; }
+    .fader-labels { display: flex; justify-content: space-between; font-weight: bold; font-size: 0.7rem; margin-bottom: 2px; }
     .fader-labels .p1-lbl { color: #ff007f; }
     .fader-labels .center-lbl { color: #8f9bb3; font-size: 0.65rem; }
     .fader-labels .p2-lbl { color: #00bfff; }
 
     input[type="range"].crossfader {
-      -webkit-appearance: none; width: 100%; height: 10px; border-radius: 6px;
+      -webkit-appearance: none; width: 100%; height: 8px; border-radius: 6px;
       background: linear-gradient(90deg, #ff007f 0%, #1a1e2e 50%, #00bfff 100%);
       border: 1px solid #282d42; outline: none;
     }
     input[type="range"].crossfader::-webkit-slider-thumb {
-      -webkit-appearance: none; width: 18px; height: 24px; border-radius: 3px;
+      -webkit-appearance: none; width: 18px; height: 20px; border-radius: 3px;
       background: #ffffff; border: 2px solid #00ffcc; cursor: pointer;
     }
 
     .eq-container {
       background: rgba(21, 24, 36, 0.85); padding: 8px 10px; border-radius: 10px;
-      border: 1px solid #282d42; flex-shrink: 0; height: 25vh; display: flex; flex-direction: column;
+      border: 1px solid #282d42; flex-shrink: 0; height: 38vh; display: flex; flex-direction: column; gap: 8px;
     }
-    .eq-header h2 { color: #00ffcc; font-size: clamp(0.75rem, 1.2vw, 0.9rem); }
-    .eq-sliders { display: flex; gap: 3px; overflow-x: auto; flex: 1; align-items: center; }
-    .slider-group { display: flex; flex-direction: column; align-items: center; min-width: 16px; height: 100%; justify-content: space-between; flex: 1; }
-    .slider-group span { font-size: 0.5rem; color: #8f9bb3; }
+    .eq-channel { flex: 1; display: flex; flex-direction: column; min-height: 0; transition: all 0.3s ease; }
+    .eq-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px; }
+    .eq-header h2 { color: #00ffcc; font-size: clamp(0.7rem, 1.1vw, 0.8rem); text-transform: uppercase; }
+    .eq-header h2.left-title { color: #ff007f; }
+    .eq-header h2.right-title { color: #00bfff; }
+    
+    .drive-btn-group { display: flex; gap: 4px; align-items: center; }
+    
+    .preset-select {
+      background: #0a0c13; color: #00ffcc; border: 1px solid #282d42;
+      padding: 2px 4px; border-radius: 4px; font-size: 0.65rem; outline: none; max-width: 120px;
+    }
+    
+    .btn-drive {
+      background: #1e2436; color: #00ffcc; border: 1px solid #00ffcc; padding: 2px 6px;
+      border-radius: 4px; font-size: 0.6rem; cursor: pointer; font-weight: bold;
+    }
+    .btn-drive:hover { background: #00ffcc; color: #08090e; }
+
+    .eq-sliders { display: flex; gap: 2px; overflow-x: auto; flex: 1; align-items: center; }
+    .slider-group { display: flex; flex-direction: column; align-items: center; min-width: 14px; height: 100%; justify-content: space-between; flex: 1; }
+    .slider-group span { font-size: 0.45rem; color: #8f9bb3; }
     .slider-group input[type="range"] {
       -webkit-appearance: none; writing-mode: bt-lr; appearance: slider-vertical;
-      width: 5px; height: 70%; background: #0e1017; border-radius: 2px; outline: none; border: 1px solid #282d42;
+      width: 4px; height: 60%; background: #0e1017; border-radius: 2px; outline: none; border: 1px solid #282d42;
     }
     .slider-group input[type="range"]::-webkit-slider-thumb {
-      -webkit-appearance: none; width: 12px; height: 8px; border-radius: 2px; background: #00ffcc; border: 1px solid #ffffff;
+      -webkit-appearance: none; width: 100%; height: 8px; border-radius: 2px; background: #00ffcc; border: 1px solid #ffffff;
     }
 
     @media (max-width: 600px) {
       .players-wrapper { flex-direction: column; }
-      .eq-container { height: 22vh; }
+      .eq-container { height: 42vh; }
       .switches-wrapper { width: 100%; justify-content: space-between; }
     }
   </style>
 </head>
 <body>
 
+  <!-- Lock Screen -->
+  <div id="lockScreen">
+    <div class="lock-box">
+      <h2>🔒 System Locked</h2>
+      <input type="password" id="passInput" placeholder="Type password..." onkeydown="if(event.key==='Enter') unlockSystem()">
+      <button onclick="unlockSystem()">UNLOCK</button>
+      <div id="lockError"></div>
+    </div>
+  </div>
+
   <div class="app-container">
-    
     <div class="top-bar">
       <h1>Audio DJ Console</h1>
       
-      <button class="btn-capture" onclick="captureTabAudio()">🎵 Link Chrome Tab</button>
+      <div class="top-bar-btns">
+        <button class="btn-capture" onclick="captureTabAudio()">🎵 Link Chrome Tab</button>
+        <button class="btn-fullscreen" id="fullscreenBtn" onclick="toggleFullscreen()">⛶ Fullscreen</button>
+      </div>
 
-      <!-- Separate Switches Container -->
       <div class="switches-wrapper">
-        <!-- 1. Chrome Tab Sound Switch -->
+        <div class="source-switch-box stereo-box">
+          <label class="title" id="stereoLabel">L/R STEREO:</label>
+          <label class="switch">
+            <input type="checkbox" id="stereoToggle" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+
         <div class="source-switch-box">
           <label class="title">TAB AUDIO:</label>
           <label class="switch">
@@ -135,7 +236,6 @@
           </label>
         </div>
 
-        <!-- 2. Local File Audio Switch -->
         <div class="source-switch-box">
           <label class="title">DECK FILES:</label>
           <label class="switch">
@@ -146,25 +246,33 @@
       </div>
     </div>
 
+    <!-- Visualizer Display -->
     <div class="visualizer-container">
       <canvas id="canvas"></canvas>
     </div>
 
     <div class="players-wrapper">
-      <div class="player-card p1">
-        <h3>Deck 1 <span id="volVal1">100%</span></h3>
+      <div class="player-card p1" id="deck1Card">
+        <h3><span id="deck1Title">Deck 1</span> <span id="volVal1">100%</span></h3>
         <input type="file" id="file1" accept="audio/*">
+        
+        <div class="folder-controls" id="folderControls">
+          <button class="folder-nav-btn" onclick="playPrevTrack()">⏮</button>
+          <select class="folder-track-select" id="folderPlaylist" onchange="playSelectedTrack(this.value)"></select>
+          <button class="folder-nav-btn" onclick="playNextTrack()">⏭</button>
+        </div>
+
         <audio id="audio1" controls></audio>
       </div>
       
-      <div class="player-card p2">
+      <div class="player-card p2" id="deck2Card">
         <h3>Deck 2 <span id="volVal2">100%</span></h3>
         <input type="file" id="file2" accept="audio/*">
         <audio id="audio2" controls></audio>
       </div>
     </div>
 
-    <div class="crossfader-card">
+    <div class="crossfader-card" id="crossfaderCard">
       <div class="crossfader-header">
         <h3>Crossfader</h3>
         <span id="crossfaderStatus" style="font-size:0.75rem; color:#00ffcc;">Center</span>
@@ -178,14 +286,89 @@
     </div>
 
     <div class="eq-container">
-      <div class="eq-header">
-        <h2>32-Band Equalizer</h2>
+      <div class="eq-channel" id="leftEqChannel">
+        <div class="eq-header">
+          <h2 class="left-title" id="leftEqTitle">Left Channel EQ</h2>
+          <div class="drive-btn-group">
+            <select id="presetListLeft" class="preset-select" onchange="loadSelectedPreset('left')">
+              <option value="">-- Presets --</option>
+            </select>
+            <button class="btn-drive" onclick="savePresetToDrive('left')">💾 Save</button>
+          </div>
+        </div>
+        <div class="eq-sliders" id="eqSlidersLeft"></div>
       </div>
-      <div class="eq-sliders" id="eqSliders"></div>
+      
+      <div class="eq-channel" id="rightEqChannel">
+        <div class="eq-header">
+          <h2 class="right-title">Right Channel EQ</h2>
+          <div class="drive-btn-group">
+            <select id="presetListRight" class="preset-select" onchange="loadSelectedPreset('right')">
+              <option value="">-- Presets --</option>
+            </select>
+            <button class="btn-drive" onclick="savePresetToDrive('right')">💾 Save</button>
+          </div>
+        </div>
+        <div class="eq-sliders" id="eqSlidersRight"></div>
+      </div>
     </div>
   </div>
 
   <script>
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwU_HHHI1YhI_NXRQ8q67-ZbgGrhJGJN3iqLUYjS35KOhWiUWqO5_VZLgYala9IYtPP/exec";
+    let currentPassword = "";
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+          console.error(`Fullscreen Error: ${err.message}`);
+        });
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+
+    /* Fullscreen স্টেট চেঞ্জ হলে বাটন টেক্সট অটোমেটিক আপডেট করার জন্য লিসেনার */
+    document.addEventListener('fullscreenchange', () => {
+      const btn = document.getElementById('fullscreenBtn');
+      if (document.fullscreenElement) {
+        btn.innerText = "⛶ Exit Fullscreen";
+      } else {
+        btn.innerText = "⛶ Fullscreen";
+      }
+    });
+
+    async function unlockSystem() {
+      const passInput = document.getElementById('passInput');
+      const errBox = document.getElementById('lockError');
+      const enteredPass = passInput.value.trim();
+
+      if (!enteredPass) {
+        errBox.innerText = "Please enter a password!";
+        return;
+      }
+
+      errBox.innerText = "Verifying...";
+
+      try {
+        const res = await fetch(`${GAS_WEB_APP_URL}?action=verify&password=${encodeURIComponent(enteredPass)}`);
+        const data = await res.json();
+
+        if (data.status === "success") {
+          currentPassword = enteredPass;
+          document.getElementById('lockScreen').style.display = 'none';
+          fetchAllPresets();
+        } else {
+          errBox.innerText = "❌ Incorrect password! Please try again.";
+          passInput.value = "";
+        }
+      } catch (err) {
+        errBox.innerText = "Connection error!";
+      }
+    }
+
     const frequencies = [
       20, 25, 31.5, 40, 50, 63, 80, 100, 125, 160, 200, 250,
       315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150,
@@ -200,29 +383,142 @@
     const crossfaderStatus = document.getElementById('crossfaderStatus');
     const volVal1 = document.getElementById('volVal1');
     const volVal2 = document.getElementById('volVal2');
-    const eqContainer = document.getElementById('eqSliders');
+    const eqContainerLeft = document.getElementById('eqSlidersLeft');
+    const eqContainerRight = document.getElementById('eqSlidersRight');
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     
     const tabAudioToggle = document.getElementById('tabAudioToggle');
     const fileAudioToggle = document.getElementById('fileAudioToggle');
+    const stereoToggle = document.getElementById('stereoToggle');
 
-    let audioCtx, analyser, filters = [];
-    let tabGainNode, filesMasterGain;
+    const deck1Card = document.getElementById('deck1Card');
+    const deck2Card = document.getElementById('deck2Card');
+    const crossfaderCard = document.getElementById('crossfaderCard');
+    const rightEqChannel = document.getElementById('rightEqChannel');
+    const leftEqTitle = document.getElementById('leftEqTitle');
+    const deck1Title = document.getElementById('deck1Title');
+    const folderControls = document.getElementById('folderControls');
+    const folderPlaylist = document.getElementById('folderPlaylist');
+
+    let audioCtx, analyser;
+    let filtersLeft = [], filtersRight = [];
+    let leftSliders = [], rightSliders = [];
+    let tabGainNode, filesMasterGain, mainMixGain;
     let gainNode1, gainNode2;
     let isAudioCtxInitialized = false;
 
-    // Capture Chrome Tab Audio Function
+    let folderAudioFiles = [];
+    let currentFolderIndex = 0;
+
+    fileAudioToggle.addEventListener('change', function() {
+      if (this.checked) {
+        deck2Card.style.display = 'flex';
+        crossfaderCard.style.display = 'block';
+        deck1Title.innerText = "Deck 1";
+        folderControls.style.display = 'none';
+
+        file1.removeAttribute('webkitdirectory');
+        file1.removeAttribute('directory');
+      } else {
+        deck2Card.style.display = 'none';
+        crossfaderCard.style.display = 'none';
+        deck1Title.innerText = "Folder Audio Player";
+        folderControls.style.display = 'flex';
+
+        file1.setAttribute('webkitdirectory', '');
+        file1.setAttribute('directory', '');
+      }
+    });
+
+    file1.addEventListener('change', function() {
+      if (!fileAudioToggle.checked) {
+        folderAudioFiles = Array.from(this.files).filter(f => f.type.startsWith('audio/') || /\.(mp3|wav|ogg|m4a|flac)$/i.test(f.name));
+        
+        folderPlaylist.innerHTML = "";
+        if (folderAudioFiles.length > 0) {
+          folderAudioFiles.forEach((file, idx) => {
+            const opt = document.createElement('option');
+            opt.value = idx;
+            opt.innerText = `${idx + 1}. ${file.name}`;
+            folderPlaylist.appendChild(opt);
+          });
+
+          currentFolderIndex = 0;
+          playSelectedTrack(0);
+        } else {
+          alert("No audio files found in selected folder!");
+        }
+      } else {
+        if (this.files.length > 0) {
+          audio1.src = URL.createObjectURL(this.files[0]);
+          audio1.play();
+          initAudioEngine();
+        }
+      }
+    });
+
+    function playSelectedTrack(index) {
+      index = parseInt(index);
+      if (folderAudioFiles[index]) {
+        currentFolderIndex = index;
+        folderPlaylist.value = index;
+        audio1.src = URL.createObjectURL(folderAudioFiles[index]);
+        audio1.play();
+        initAudioEngine();
+      }
+    }
+
+    function playNextTrack() {
+      if (folderAudioFiles.length > 0) {
+        let nextIdx = (currentFolderIndex + 1) % folderAudioFiles.length;
+        playSelectedTrack(nextIdx);
+      }
+    }
+
+    function playPrevTrack() {
+      if (folderAudioFiles.length > 0) {
+        let prevIdx = (currentFolderIndex - 1 + folderAudioFiles.length) % folderAudioFiles.length;
+        playSelectedTrack(prevIdx);
+      }
+    }
+
+    audio1.addEventListener('ended', function() {
+      if (!fileAudioToggle.checked && folderAudioFiles.length > 0) {
+        playNextTrack();
+      }
+    });
+
+    stereoToggle.addEventListener('change', function() {
+      if (this.checked) {
+        rightEqChannel.style.display = 'flex';
+        leftEqTitle.innerText = "Left Channel EQ";
+        leftEqTitle.style.color = "#ff007f";
+      } else {
+        rightEqChannel.style.display = 'none';
+        leftEqTitle.innerText = "Master Equalizer (Mono L+R)";
+        leftEqTitle.style.color = "#00ffcc";
+        syncMonoEqualizer();
+      }
+    });
+
+    function syncMonoEqualizer() {
+      if (!stereoToggle.checked) {
+        leftSliders.forEach((slider, index) => {
+          const val = parseFloat(slider.value);
+          if (rightSliders[index]) rightSliders[index].value = val;
+          if (filtersLeft[index]) filtersLeft[index].gain.value = val;
+          if (filtersRight[index]) filtersRight[index].gain.value = val;
+        });
+      }
+    }
+
     async function captureTabAudio() {
       try {
-        const stream = await navigator.mediaDevices.getDisplayMedia({
-          video: true,
-          audio: true
-        });
-
+        const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
         const audioTrack = stream.getAudioTracks()[0];
         if (!audioTrack) {
-          alert("অডিও পাওয়ার জন্য অবশ্যই 'Share tab audio' অপশনে টিক দিন!");
+          alert("Please select 'Share tab audio' to capture tab audio!");
           return;
         }
 
@@ -233,21 +529,13 @@
         tabGainNode.gain.value = tabAudioToggle.checked ? 1 : 0;
         
         tabSource.connect(tabGainNode);
-        tabGainNode.connect(filters[0]);
+        tabGainNode.connect(mainMixGain);
 
-        alert("Chrome Tab সফলভাবে কানেক্ট হয়েছে!");
+        alert("Chrome Tab connected!");
       } catch (err) {
         console.error("Tab Capture Failed: ", err);
       }
     }
-
-    file1.addEventListener('change', function() {
-      if (this.files.length > 0) {
-        audio1.src = URL.createObjectURL(this.files[0]);
-        audio1.play();
-        initAudioEngine();
-      }
-    });
 
     file2.addEventListener('change', function() {
       if (this.files.length > 0) {
@@ -257,37 +545,12 @@
       }
     });
 
-    // Toggle 1: Chrome Tab Audio Control
     tabAudioToggle.addEventListener('change', function() {
-      if (tabGainNode) {
-        tabGainNode.gain.value = this.checked ? 1 : 0;
-      }
+      if (tabGainNode) tabGainNode.gain.value = this.checked ? 1 : 0;
     });
 
-    // Toggle 2: Local Deck Files Audio Control
-    fileAudioToggle.addEventListener('change', function() {
-      if (filesMasterGain) {
-        filesMasterGain.gain.value = this.checked ? 1 : 0;
-      }
-    });
-
-    function initAudioEngine() {
-      if (isAudioCtxInitialized) return;
-
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      audioCtx = new AudioContext();
-
-      // Gain Nodes Setup
-      filesMasterGain = audioCtx.createGain();
-      filesMasterGain.gain.value = fileAudioToggle.checked ? 1 : 0;
-
-      gainNode1 = audioCtx.createGain();
-      gainNode2 = audioCtx.createGain();
-
-      analyser = audioCtx.createAnalyser();
-      analyser.fftSize = 128;
-
-      filters = frequencies.map((freq) => {
+    function createFilterChain() {
+      return frequencies.map((freq) => {
         const filter = audioCtx.createBiquadFilter();
         filter.type = 'peaking';
         filter.frequency.value = freq;
@@ -295,25 +558,60 @@
         filter.gain.value = 0;
         return filter;
       });
+    }
 
-      for (let i = 0; i < filters.length - 1; i++) {
-        filters[i].connect(filters[i + 1]);
+    function connectChain(chain) {
+      for (let i = 0; i < chain.length - 1; i++) {
+        chain[i].connect(chain[i + 1]);
       }
+    }
+
+    function initAudioEngine() {
+      if (isAudioCtxInitialized) return;
+
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AudioContext();
+
+      filesMasterGain = audioCtx.createGain();
+      filesMasterGain.gain.value = 1;
+
+      gainNode1 = audioCtx.createGain();
+      gainNode2 = audioCtx.createGain();
+
+      mainMixGain = audioCtx.createGain();
 
       const source1 = audioCtx.createMediaElementSource(audio1);
       const source2 = audioCtx.createMediaElementSource(audio2);
 
-      // Deck 1 & Deck 2 -> Crossfader Gain -> File Master Gain -> Equalizer
       source1.connect(gainNode1);
       source2.connect(gainNode2);
 
       gainNode1.connect(filesMasterGain);
       gainNode2.connect(filesMasterGain);
 
-      filesMasterGain.connect(filters[0]);
+      filesMasterGain.connect(mainMixGain);
 
-      // Equalizer Output -> Analyser -> Speakers
-      filters[filters.length - 1].connect(analyser);
+      const splitter = audioCtx.createChannelSplitter(2);
+      const merger = audioCtx.createChannelMerger(2);
+
+      filtersLeft = createFilterChain();
+      filtersRight = createFilterChain();
+
+      connectChain(filtersLeft);
+      connectChain(filtersRight);
+
+      mainMixGain.connect(splitter);
+
+      splitter.connect(filtersLeft[0], 0);
+      filtersLeft[filtersLeft.length - 1].connect(merger, 0, 0);
+
+      splitter.connect(filtersRight[0], 1);
+      filtersRight[filtersRight.length - 1].connect(merger, 0, 1);
+
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 128;
+
+      merger.connect(analyser);
       analyser.connect(audioCtx.destination);
 
       isAudioCtxInitialized = true;
@@ -355,7 +653,7 @@
 
     crossfader.addEventListener('input', updateCrossfader);
 
-    function buildEqualizerUI() {
+    function buildEqualizerUI(container, filtersArray, slidersArray, isLeft) {
       frequencies.forEach((freq, index) => {
         const group = document.createElement('div');
         group.className = 'slider-group';
@@ -369,40 +667,202 @@
         label.innerText = labelText;
 
         slider.addEventListener('input', (e) => {
-          if (filters[index]) filters[index].gain.value = parseFloat(e.target.value);
+          const val = parseFloat(e.target.value);
+          if (filtersArray[index]) filtersArray[index].gain.value = val;
+
+          if (!stereoToggle.checked) {
+            if (isLeft && rightSliders[index]) {
+              rightSliders[index].value = val;
+              if (filtersRight[index]) filtersRight[index].gain.value = val;
+            } else if (!isLeft && leftSliders[index]) {
+              leftSliders[index].value = val;
+              if (filtersLeft[index]) filtersLeft[index].gain.value = val;
+            }
+          }
         });
 
+        slidersArray.push(slider);
         group.appendChild(slider);
         group.appendChild(label);
-        eqContainer.appendChild(group);
+        container.appendChild(group);
       });
     }
 
-    buildEqualizerUI();
+    buildEqualizerUI(eqContainerLeft, filtersLeft, leftSliders, true);
+    buildEqualizerUI(eqContainerRight, filtersRight, rightSliders, false);
+
+    async function fetchAllPresets() {
+      if (!currentPassword) return;
+
+      const selectLeft = document.getElementById('presetListLeft');
+      const selectRight = document.getElementById('presetListRight');
+      
+      selectLeft.innerHTML = '<option value="">Loading...</option>';
+      selectRight.innerHTML = '<option value="">Loading...</option>';
+
+      try {
+        const res = await fetch(`${GAS_WEB_APP_URL}?action=list&password=${encodeURIComponent(currentPassword)}`);
+        const data = await res.json();
+
+        const optionsHTML = '<option value="">-- Select Preset --</option>';
+        selectLeft.innerHTML = optionsHTML;
+        selectRight.innerHTML = optionsHTML;
+
+        if (data.status === "success" && data.presets.length > 0) {
+          data.presets.forEach(item => {
+            const opt1 = document.createElement('option');
+            opt1.value = item.filename;
+            opt1.innerText = item.presetName;
+            selectLeft.appendChild(opt1);
+
+            const opt2 = document.createElement('option');
+            opt2.value = item.filename;
+            opt2.innerText = item.presetName;
+            selectRight.appendChild(opt2);
+          });
+        }
+      } catch (err) {
+        console.error("Error fetching presets:", err);
+      }
+    }
+
+    async function savePresetToDrive(channel) {
+      if (!currentPassword) return;
+
+      const presetName = prompt(`Enter name for Preset:`);
+      if (!presetName || presetName.trim() === "") return;
+
+      const sliders = channel === 'left' ? leftSliders : rightSliders;
+      const values = sliders.map(s => parseFloat(s.value));
+
+      try {
+        await fetch(GAS_WEB_APP_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            password: currentPassword,
+            presetName: presetName,
+            values: values
+          })
+        });
+
+        alert(`Preset "${presetName}" saved!`);
+        setTimeout(fetchAllPresets, 1000);
+      } catch (err) {
+        alert("Error saving preset: " + err);
+      }
+    }
+
+    async function loadSelectedPreset(channel) {
+      if (!currentPassword) return;
+
+      const selectElem = document.getElementById(channel === 'left' ? 'presetListLeft' : 'presetListRight');
+      const fileName = selectElem.value;
+      if (!fileName) return;
+
+      try {
+        const res = await fetch(`${GAS_WEB_APP_URL}?action=get&fileName=${encodeURIComponent(fileName)}&password=${encodeURIComponent(currentPassword)}`);
+        const data = await res.json();
+
+        if (data.status === "success" && data.values) {
+          const sliders = channel === 'left' ? leftSliders : rightSliders;
+          const filters = channel === 'left' ? filtersLeft : filtersRight;
+
+          data.values.forEach((val, i) => {
+            if (sliders[i]) sliders[i].value = val;
+            if (filters[i]) filters[i].gain.value = val;
+          });
+
+          if (!stereoToggle.checked) {
+            syncMonoEqualizer();
+          }
+        }
+      } catch (err) {
+        alert("Error loading preset: " + err);
+      }
+    }
+
+    let peakCaps = [];
 
     function renderVisualizer() {
       requestAnimationFrame(renderVisualizer);
-      const bufferLength = analyser ? analyser.frequencyBinCount : 32;
-      const dataArray = new Uint8Array(bufferLength);
-
-      if (analyser) analyser.getByteFrequencyData(dataArray);
 
       canvas.width = canvas.clientWidth;
       canvas.height = canvas.clientHeight;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      const barWidth = (canvas.width / bufferLength) * 2;
-      let barHeight, x = 0;
+      const totalHeight = canvas.height;
+      const baselineY = totalHeight * 0.58;
+      const numBars = 36;
+      const barSpacing = 2;
+      const barWidth = (canvas.width - (numBars * barSpacing)) / numBars;
 
-      for (let i = 0; i < bufferLength; i++) {
-        barHeight = (dataArray[i] / 255) * canvas.height;
-        const r = (i * 8) % 255;
-        const g = (255 - (i * 5)) % 255;
-        const b = (dataArray[i] * 2) % 255;
+      const maxBlocks = 18;
+      const blockHeight = 2.5;
+      const blockGap = 1.2;
 
-        ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
-        ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
-        x += barWidth + 1;
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const bufferLength = analyser ? analyser.frequencyBinCount : numBars;
+      const dataArray = new Uint8Array(bufferLength);
+      if (analyser) analyser.getByteFrequencyData(dataArray);
+
+      if (peakCaps.length !== numBars) {
+        peakCaps = new Array(numBars).fill(0);
+      }
+
+      ctx.beginPath();
+      ctx.moveTo(0, baselineY);
+      ctx.lineTo(canvas.width, baselineY);
+      ctx.strokeStyle = '#00aaff';
+      ctx.lineWidth = 1.5;
+      ctx.shadowColor = '#00aaff';
+      ctx.shadowBlur = 8;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      for (let i = 0; i < numBars; i++) {
+        const dataIndex = Math.floor((i / numBars) * bufferLength);
+        const audioVal = dataArray[dataIndex] || 0;
+        
+        const activeBlocks = Math.floor((audioVal / 255) * maxBlocks);
+
+        if (activeBlocks >= peakCaps[i]) {
+          peakCaps[i] = activeBlocks;
+        } else {
+          peakCaps[i] -= 0.15;
+          if (peakCaps[i] < 0) peakCaps[i] = 0;
+        }
+
+        const x = i * (barWidth + barSpacing) + barSpacing / 2;
+        const hue = (i / numBars) * 280 + 270;
+        const blockColor = `hsl(${hue % 360}, 100%, 55%)`;
+
+        for (let b = 0; b < maxBlocks; b++) {
+          const y = baselineY - (b + 1) * (blockHeight + blockGap);
+
+          if (b < activeBlocks) {
+            ctx.fillStyle = blockColor;
+          } else {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
+          }
+          ctx.fillRect(x, y, barWidth, blockHeight);
+        }
+
+        const peakBlockIndex = Math.floor(peakCaps[i]);
+        if (peakBlockIndex > 0) {
+          const peakY = baselineY - (peakBlockIndex + 1) * (blockHeight + blockGap);
+          ctx.fillStyle = blockColor;
+          ctx.fillRect(x, peakY, barWidth, blockHeight);
+        }
+
+        for (let b = 0; b < activeBlocks; b++) {
+          const yReflect = baselineY + b * (blockHeight + blockGap) + 3;
+          const alpha = Math.max(0, 0.35 - (b / maxBlocks) * 0.32);
+          
+          ctx.fillStyle = `hsla(${hue % 360}, 100%, 55%, ${alpha})`;
+          ctx.fillRect(x, yReflect, barWidth, blockHeight);
+        }
       }
     }
 
