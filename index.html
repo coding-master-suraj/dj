@@ -67,7 +67,6 @@
       text-align: center;
     }
     
-    /* Animation duration set to 3 seconds */
     @keyframes titlePowerOn {
       0% { opacity: 0; transform: scale(0.3); filter: blur(10px); }
       30% { opacity: 1; transform: scale(1.1); filter: blur(0px); }
@@ -83,7 +82,7 @@
     .play-power-on { animation: titlePowerOn 3s forwards ease-in-out; }
     .play-power-off { animation: titlePowerOff 3s forwards ease-in-out; }
 
-    /* Lock Screen */
+    /* Lock Screen Modal */
     #lockScreen {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       background: rgba(8, 9, 14, 0.96); backdrop-filter: blur(15px);
@@ -104,26 +103,16 @@
       transition: all 0.3s ease;
     }
     .lock-box input:disabled {
-      background: #1a1f2e;
-      color: #00ffcc;
-      border-color: #00ffcc;
-      cursor: not-allowed;
-      opacity: 0.8;
+      background: #1a1f2e; color: #00ffcc; border-color: #00ffcc; cursor: not-allowed; opacity: 0.8;
     }
     .lock-box button {
       width: 100%; padding: 10px; border-radius: 6px; border: none;
       background: #00ffcc; color: #08090e; font-weight: bold; cursor: pointer;
-      font-size: 0.9rem;
-      transition: all 0.3s ease;
+      font-size: 0.9rem; transition: all 0.3s ease;
     }
-    .lock-box button:disabled {
-      background: #282d42;
-      color: #8f9bb3;
-      cursor: not-allowed;
-    }
+    .lock-box button:disabled { background: #282d42; color: #8f9bb3; cursor: not-allowed; }
     #lockError { color: #ff007f; font-size: 0.75rem; min-height: 15px; margin-top: 8px; }
 
-    /* Keyframe Animations for Password Box Verification */
     @keyframes verifyingPulse {
       0% { box-shadow: 0 0 10px rgba(0,255,204,0.3); border-color: #00ffcc; }
       50% { box-shadow: 0 0 30px rgba(0,255,204,0.9); border-color: #00ffcc; transform: scale(1.02); }
@@ -142,6 +131,7 @@
     .app-container {
       width: 100%; height: 100%; padding: 10px;
       display: flex; flex-direction: column; justify-content: space-between; gap: 8px;
+      position: relative;
     }
     
     .top-bar { 
@@ -155,14 +145,23 @@
       margin-top: 5px;
     }
 
-    .brand-header-box { display: flex; align-items: center; gap: 10px; }
+    /* Arranged strictly: Power Off Button -> Title -> Lock */
+    .brand-header-box { display: flex; align-items: center; gap: 12px; }
     .btn-power-off-top {
-      width: 28px; height: 28px; border-radius: 50%; background: #151824;
-      border: 1px solid #ff0055; color: #ff0055; font-size: 0.85rem; cursor: pointer;
+      width: 32px; height: 32px; border-radius: 50%; background: #151824;
+      border: 1px solid #ff0055; color: #ff0055; font-size: 0.95rem; cursor: pointer;
       display: flex; justify-content: center; align-items: center; transition: all 0.2s ease;
       box-shadow: 0 0 6px rgba(255, 0, 85, 0.3);
     }
     .btn-power-off-top:hover { background: #ff0055; color: #fff; box-shadow: 0 0 10px #ff0055; }
+
+    .btn-lock-top {
+      width: 32px; height: 32px; border-radius: 50%; background: #151824;
+      border: 1px solid #00ffcc; color: #00ffcc; font-size: 0.95rem; cursor: pointer;
+      display: flex; justify-content: center; align-items: center; transition: all 0.2s ease;
+      box-shadow: 0 0 6px rgba(0, 255, 204, 0.3);
+    }
+    .btn-lock-top:hover { background: #00ffcc; color: #08090e; box-shadow: 0 0 10px #00ffcc; }
 
     h1 { color: #00ffcc; text-shadow: 0 0 10px rgba(0, 255, 204, 0.5); font-size: clamp(0.9rem, 2vw, 1.2rem); text-transform: uppercase; }
     
@@ -171,13 +170,10 @@
     .btn-capture {
       background: #00ffcc; color: #0a0c13; border: none; padding: 6px 12px;
       border-radius: 4px; font-size: 0.75rem; font-weight: bold; cursor: pointer;
-      box-shadow: 0 0 8px rgba(0, 255, 204, 0.4);
-      transition: all 0.3s ease;
+      box-shadow: 0 0 8px rgba(0, 255, 204, 0.4); transition: all 0.3s ease; display: none;
     }
-    .btn-capture.active {
-      background: #ff0055; color: #ffffff;
-      box-shadow: 0 0 8px rgba(255, 0, 85, 0.6);
-    }
+    .btn-capture.active { background: #ff0055; color: #ffffff; box-shadow: 0 0 8px rgba(255, 0, 85, 0.6); }
+    
     .btn-fullscreen {
       background: #1e2436; color: #00ffcc; border: 1px solid #00ffcc; padding: 5px 10px;
       border-radius: 4px; font-size: 0.75rem; font-weight: bold; cursor: pointer;
@@ -190,9 +186,7 @@
       background: rgba(255, 204, 0, 0.08); border: 1px solid #ffcc00;
       padding: 4px 8px; border-radius: 20px;
     }
-    .source-switch-box.stereo-box {
-      background: rgba(0, 255, 204, 0.08); border-color: #00ffcc;
-    }
+    .source-switch-box.stereo-box { background: rgba(0, 255, 204, 0.08); border-color: #00ffcc; }
     .source-switch-box label.title { font-size: 0.65rem; color: #ffcc00; font-weight: bold; }
     .source-switch-box.stereo-box label.title { color: #00ffcc; }
     
@@ -209,21 +203,24 @@
     input:checked + .slider { background-color: #00ffcc; border-color: #00ffcc; }
     input:checked + .slider:before { transform: translateX(18px); background-color: #0a0c13; }
 
+    /* Visualizer Container */
     .visualizer-container {
       position: relative;
       width: 100%; height: 14vh; min-height: 80px;
-      background: #000000;
-      border-radius: 10px;
-      overflow: hidden;
-      flex-shrink: 0;
-      padding: 2px;
-      border: 1px solid #1a2233;
+      background: #000000; border-radius: 10px; overflow: hidden;
+      flex-shrink: 0; padding: 2px; border: 1px solid #1a2233;
       box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.9), 0 0 15px rgba(0, 255, 204, 0.1);
+      transition: all 0.4s ease;
     }
 
     canvas { width: 100%; height: 100%; display: block; }
 
-    .players-wrapper { display: flex; gap: 10px; width: 100%; flex: 1; min-height: 0; }
+    /* Controls Elements Wrapper */
+    .controls-wrapper {
+      display: flex; flex-direction: column; gap: 8px; flex: 1; min-height: 0;
+    }
+
+    .players-wrapper { display: flex; gap: 10px; width: 100%; flex: 1; min-height: 0; transition: all 0.4s ease; }
     .player-card {
       flex: 1; background: rgba(21, 24, 36, 0.8); backdrop-filter: blur(8px);
       padding: 8px 12px; border-radius: 10px; border: 1px solid #282d42;
@@ -233,10 +230,21 @@
     .player-card.p1 h3 { color: #ff007f; font-size: clamp(0.85rem, 1.8vw, 1.1rem); display: flex; justify-content: space-between; }
     .player-card.p2 h3 { color: #00bfff; font-size: clamp(0.85rem, 1.8vw, 1.1rem); display: flex; justify-content: space-between; }
     
+    .file-input-wrapper { position: relative; width: 100%; }
+    
     input[type="file"] {
       display: block; width: 100%; color: #b0b9d0; font-size: 0.75rem;
       background: #0a0c13; padding: 6px; border-radius: 6px; border: 1px solid #282d42; cursor: pointer;
     }
+    
+    .folder-mode-input::-webkit-file-upload-button { visibility: hidden; width: 0; }
+    .folder-mode-input::before {
+      content: 'Choose Folder'; display: inline-block; background: #1e2436;
+      border: 1px solid #00ffcc; border-radius: 4px; padding: 2px 6px;
+      outline: none; white-space: nowrap; cursor: pointer; color: #00ffcc;
+      font-weight: bold; font-size: 0.7rem; margin-right: 8px;
+    }
+
     audio { width: 100%; height: 28px; }
 
     .btn-reset-deck {
@@ -247,22 +255,29 @@
     }
     .btn-reset-deck:hover { background: #00e6b8; }
 
-    .folder-controls {
-      display: none; align-items: center; justify-content: space-between; gap: 6px;
-    }
+    /* Custom Folder Playlist UI */
+    .folder-controls { display: none; align-items: stretch; justify-content: space-between; gap: 6px; }
     .folder-nav-btn {
       background: #1e2436; color: #00ffcc; border: 1px solid #00ffcc; padding: 4px 8px;
-      border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: bold;
+      border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: bold; height: auto;
     }
     .folder-nav-btn:hover { background: #00ffcc; color: #08090e; }
-    .folder-track-select {
-      flex: 1; background: #0a0c13; color: #00ffcc; border: 1px solid #282d42;
-      padding: 4px; border-radius: 4px; font-size: 0.7rem; outline: none; text-overflow: ellipsis;
+    
+    .folder-playlist-container {
+      flex: 1; background: #0a0c13; border: 1px solid #282d42;
+      border-radius: 4px; max-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; padding: 2px;
     }
+    .playlist-item {
+      display: flex; align-items: center; justify-content: space-between; background: #131722;
+      border: 1px solid #1a2233; padding: 3px 6px; border-radius: 3px; cursor: pointer; font-size: 0.7rem; color: #b0b9d0;
+    }
+    .playlist-item.active { background: rgba(0, 255, 204, 0.15); border-color: #00ffcc; color: #00ffcc; font-weight: bold; }
+    .playlist-item.dragging { opacity: 0.4; border: 1px dashed #00ffcc; }
+    .drag-handle { cursor: grab; margin-right: 6px; color: #00ffcc; font-size: 0.8rem; padding: 0 4px; }
 
     .crossfader-card {
       background: rgba(21, 24, 36, 0.85); padding: 6px 14px; border-radius: 10px;
-      border: 1px solid #282d42; text-align: center; flex-shrink: 0; transition: all 0.3s ease;
+      border: 1px solid #282d42; text-align: center; flex-shrink: 0; transition: all 0.4s ease;
     }
     .crossfader-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; }
     .crossfader-header h3 { font-size: clamp(0.8rem, 1.3vw, 0.95rem); color: #00ffcc; }
@@ -284,6 +299,7 @@
     .eq-container {
       background: rgba(21, 24, 36, 0.85); padding: 8px 10px; border-radius: 10px;
       border: 1px solid #282d42; flex-shrink: 0; height: 38vh; display: flex; flex-direction: column; gap: 8px;
+      transition: all 0.4s ease;
     }
     .eq-channel { flex: 1; display: flex; flex-direction: column; min-height: 0; transition: all 0.3s ease; }
     .eq-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px; }
@@ -291,16 +307,20 @@
     .eq-header h2.left-title { color: #ff007f; }
     .eq-header h2.right-title { color: #00bfff; }
     
-    .drive-btn-group { display: flex; gap: 4px; align-items: center; }
-    
+    .drive-btn-group { display: flex; gap: 4px; align-items: center; position: relative; }
+    .preset-wrapper { position: relative; width: 130px; height: 24px; }
+
     .preset-select {
-      background: #0a0c13; color: #00ffcc; border: 1px solid #282d42;
-      padding: 2px 4px; border-radius: 4px; font-size: 0.65rem; outline: none; max-width: 120px;
+      position: absolute; top: 0; left: 0; width: 100%; background: #0a0c13; color: #00ffcc;
+      border: 1px solid #282d42; padding: 2px 4px; border-radius: 4px; font-size: 0.65rem;
+      outline: none; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
     }
+    .preset-select:focus { border-color: #00ffcc; }
+    .preset-select option { padding: 4px; background: #0a0c13; color: #00ffcc; }
     
     .btn-drive {
       background: #1e2436; color: #00ffcc; border: 1px solid #00ffcc; padding: 2px 6px;
-      border-radius: 4px; font-size: 0.6rem; cursor: pointer; font-weight: bold;
+      border-radius: 4px; font-size: 0.6rem; cursor: pointer; font-weight: bold; height: 24px;
     }
     .btn-drive:hover { background: #00ffcc; color: #08090e; }
     .btn-drive:disabled { opacity: 0.4; cursor: not-allowed; background: #1e2436; color: #8f9bb3; border-color: #282d42; }
@@ -314,6 +334,78 @@
     }
     .slider-group input[type="range"]::-webkit-slider-thumb {
       -webkit-appearance: none; width: 100%; height: 8px; border-radius: 2px; background: #00ffcc; border: 1px solid #ffffff;
+    }
+
+    /* Floating Large RGB Ring Light Unlock Button Container Positioned exactly Between Middle and Bottom */
+    #rgbLockContainer {
+      display: none;
+      position: fixed;
+      top: 80%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 130px; height: 130px;
+      justify-content: center; align-items: center;
+      z-index: 500;
+      flex-direction: column;
+      gap: 10px;
+      cursor: pointer;
+    }
+
+    .rgb-orbit-ring {
+      position: absolute;
+      width: 100%; height: 100%;
+      border-radius: 50%;
+      pointer-events: none;
+      animation: rgbRotate 2s linear infinite;
+      box-shadow: 0 0 25px rgba(0, 255, 204, 0.2);
+    }
+
+    .rgb-dot {
+      position: absolute;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      box-shadow: 0 0 15px currentColor;
+    }
+    .rgb-dot:nth-child(1) { top: -6px; left: 50%; transform: translateX(-50%); background: #ff0055; color: #ff0055; }
+    .rgb-dot:nth-child(2) { bottom: -6px; left: 50%; transform: translateX(-50%); background: #00ffcc; color: #00ffcc; }
+    .rgb-dot:nth-child(3) { left: -6px; top: 50%; transform: translateY(-50%); background: #ffcc00; color: #ffcc00; }
+    .rgb-dot:nth-child(4) { right: -6px; top: 50%; transform: translateY(-50%); background: #00bfff; color: #00bfff; }
+
+    @keyframes rgbRotate {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .btn-large-unlock {
+      width: 90px; height: 90px; border-radius: 50%;
+      background: #08090e; border: 2px solid #00ffcc;
+      color: #00ffcc; font-size: 2.2rem; cursor: pointer;
+      display: flex; justify-content: center; align-items: center;
+      box-shadow: 0 0 20px rgba(0, 255, 204, 0.5);
+      z-index: 2; transition: all 0.3s ease;
+    }
+    .btn-large-unlock:hover {
+      background: #00ffcc; color: #08090e; transform: scale(1.08);
+      box-shadow: 0 0 35px rgba(0, 255, 204, 0.9);
+    }
+    .unlock-hint-text {
+      font-size: 0.75rem; color: #00ffcc; font-weight: bold; letter-spacing: 1px;
+      text-transform: uppercase; text-shadow: 0 0 8px #00ffcc;
+    }
+
+    /* Screen Locked Mode Styles */
+    body.screen-locked .top-bar,
+    body.screen-locked .controls-wrapper {
+      display: none !important;
+    }
+    /* Visualizer remains fixed at top in screen lock mode */
+    body.screen-locked .visualizer-container {
+      height: 60vh !important;
+      border-radius: 0 0 15px 15px;
+      border: 1px solid #00ffcc;
+      box-shadow: 0 0 25px rgba(0, 255, 204, 0.2);
+    }
+    body.screen-locked #rgbLockContainer {
+      display: flex;
     }
 
     @media (max-width: 600px) {
@@ -337,7 +429,7 @@
     <div class="animated-subtitle" id="animatedSubtitle">Powered by Coding Master Suraj</div>
   </div>
 
-  <!-- Lock Screen -->
+  <!-- Lock Screen Overlay (Password Input Modal) -->
   <div id="lockScreen">
     <div class="lock-box" id="lockBox">
       <h2>🔒 System Locked</h2>
@@ -348,10 +440,12 @@
   </div>
 
   <div class="app-container">
+    <!-- Top Header Bar Rearranged: Power Off -> Title -> Lock -->
     <div class="top-bar">
       <div class="brand-header-box">
         <button class="btn-power-off-top" title="Power Off System" onclick="powerOffSystem()"><i class="fa-solid fa-power-off"></i></button>
         <h1>Audio DJ Console</h1>
+        <button class="btn-lock-top" title="Lock System Controls" onclick="lockConsoleUI()"><i class="fa-solid fa-lock"></i></button>
       </div>
       
       <div class="top-bar-btns">
@@ -360,98 +454,125 @@
       </div>
 
       <div class="switches-wrapper">
-        <div class="source-switch-box stereo-box">
-          <label class="title" id="stereoLabel">L/R STEREO:</label>
+        <div class="source-switch-box">
+          <label class="title">LINK CHROME TAB</label>
+          <label class="title" id="tabAudioLabelBefore">OFF</label>
           <label class="switch">
-            <input type="checkbox" id="stereoToggle" checked>
+            <input type="checkbox" id="tabAudioToggle">
             <span class="slider"></span>
           </label>
+          <label class="title" id="tabAudioLabelAfter" style="display:none;">ON</label>
         </div>
 
         <div class="source-switch-box">
-          <label class="title">TAB AUDIO:</label>
-          <label class="switch">
-            <input type="checkbox" id="tabAudioToggle" checked>
-            <span class="slider"></span>
-          </label>
-        </div>
-
-        <div class="source-switch-box">
-          <label class="title">DECK FILES:</label>
+          <label class="title">DECK</label>
+          <label class="title" id="fileAudioLabelBefore">FILE</label>
           <label class="switch">
             <input type="checkbox" id="fileAudioToggle" checked>
             <span class="slider"></span>
           </label>
+          <label class="title" id="fileAudioLabelAfter" style="display:none;">FOLDER</label>
+        </div>
+
+        <div class="source-switch-box stereo-box">
+          <label class="title">MASTER EQUALIZER</label>
+          <label class="title" id="stereoLabelBefore">STEREO</label>
+          <label class="switch">
+            <input type="checkbox" id="stereoToggle" checked>
+            <span class="slider"></span>
+          </label>
+          <label class="title" id="stereoLabelAfter" style="display:none;">MONO</label>
         </div>
       </div>
     </div>
 
-    <!-- Visualizer Display -->
+    <!-- Visualizer Dancing Display -->
     <div class="visualizer-container">
       <canvas id="canvas"></canvas>
     </div>
 
-    <div class="players-wrapper">
-      <div class="player-card p1" id="deck1Card">
-        <h3><span id="deck1Title">Deck 1</span> <span id="volVal1">100%</span></h3>
-        <input type="file" id="file1" accept="audio/*">
-        <button id="resetDeck1Btn" class="btn-reset-deck" onclick="resetDeck(1)">➕ Add New File</button>
+    <!-- Large RGB Ring Light Unlock Button Box (Placed between Middle and Bottom in Locked Mode) -->
+    <div id="rgbLockContainer" onclick="openUnlockPrompt()">
+      <div class="rgb-orbit-ring">
+        <div class="rgb-dot"></div>
+        <div class="rgb-dot"></div>
+        <div class="rgb-dot"></div>
+        <div class="rgb-dot"></div>
+      </div>
+      <button class="btn-large-unlock" title="Click to Unlock"><i class="fa-solid fa-lock"></i></button>
+      <div class="unlock-hint-text">TAP TO UNLOCK</div>
+    </div>
+
+    <!-- Console Controls Wrapper -->
+    <div class="controls-wrapper">
+      <div class="players-wrapper">
+        <div class="player-card p1" id="deck1Card">
+          <h3><span id="deck1Title">Deck Audio File Player 1</span> <span id="volVal1">100%</span></h3>
+          <div class="file-input-wrapper">
+            <input type="file" id="file1" accept="audio/*">
+          </div>
+          <button id="resetDeck1Btn" class="btn-reset-deck" onclick="resetDeck(1)">➕ Add New File</button>
+          
+          <div class="folder-controls" id="folderControls">
+            <button class="folder-nav-btn" onclick="playPrevTrack()">⏮</button>
+            <div class="folder-playlist-container" id="folderPlaylistContainer"></div>
+            <button class="folder-nav-btn" onclick="playNextTrack()">⏭</button>
+          </div>
+
+          <audio id="audio1" controls></audio>
+        </div>
         
-        <div class="folder-controls" id="folderControls">
-          <button class="folder-nav-btn" onclick="playPrevTrack()">⏮</button>
-          <select class="folder-track-select" id="folderPlaylist" onchange="playSelectedTrack(this.value)"></select>
-          <button class="folder-nav-btn" onclick="playNextTrack()">⏭</button>
+        <div class="player-card p2" id="deck2Card">
+          <h3><span id="deck2Title">Deck Audio File Player 2</span> <span id="volVal2">100%</span></h3>
+          <input type="file" id="file2" accept="audio/*">
+          <button id="resetDeck2Btn" class="btn-reset-deck" onclick="resetDeck(2)">➕ Add New File</button>
+          <audio id="audio2" controls></audio>
         </div>
+      </div>
 
-        <audio id="audio1" controls></audio>
+      <div class="crossfader-card" id="crossfaderCard">
+        <div class="crossfader-header">
+          <h3>Crossfader</h3>
+          <span id="crossfaderStatus" style="font-size:0.75rem; color:#00ffcc;">Center</span>
+        </div>
+        <div class="fader-labels">
+          <span class="p1-lbl">◀ Deck Audio File Player 1</span>
+          <span class="center-lbl">MIX</span>
+          <span class="p2-lbl">Deck Audio File Player 2 ▶</span>
+        </div>
+        <input type="range" id="crossfader" class="crossfader" min="0" max="100" value="50" step="1">
       </div>
-      
-      <div class="player-card p2" id="deck2Card">
-        <h3>Deck 2 <span id="volVal2">100%</span></h3>
-        <input type="file" id="file2" accept="audio/*">
-        <button id="resetDeck2Btn" class="btn-reset-deck" onclick="resetDeck(2)">➕ Add New File</button>
-        <audio id="audio2" controls></audio>
-      </div>
-    </div>
 
-    <div class="crossfader-card" id="crossfaderCard">
-      <div class="crossfader-header">
-        <h3>Crossfader</h3>
-        <span id="crossfaderStatus" style="font-size:0.75rem; color:#00ffcc;">Center</span>
-      </div>
-      <div class="fader-labels">
-        <span class="p1-lbl">◀ Deck 1</span>
-        <span class="center-lbl">MIX</span>
-        <span class="p2-lbl">Deck 2 ▶</span>
-      </div>
-      <input type="range" id="crossfader" class="crossfader" min="0" max="100" value="50" step="1">
-    </div>
-
-    <div class="eq-container">
-      <div class="eq-channel" id="leftEqChannel">
-        <div class="eq-header">
-          <h2 class="left-title" id="leftEqTitle">Left Channel EQ</h2>
-          <div class="drive-btn-group">
-            <select id="presetListLeft" class="preset-select" onchange="loadSelectedPreset('left')">
-              <option value="" disabled selected>-- Select Preset --</option>
-            </select>
-            <button class="btn-drive" id="saveBtnLeft" onclick="savePresetToDrive('left')" disabled>💾 Save</button>
+      <div class="eq-container">
+        <div class="eq-channel" id="leftEqChannel">
+          <div class="eq-header">
+            <h2 class="left-title" id="leftEqTitle">Left Channel EQ</h2>
+            <div class="drive-btn-group">
+              <div class="preset-wrapper">
+                <select id="presetListLeft" class="preset-select" onfocus="this.size=6;" onblur="this.size=1;" onchange="this.size=1; this.blur(); loadSelectedPreset('left');">
+                  <option value="" disabled selected>-- Select Preset --</option>
+                </select>
+              </div>
+              <button class="btn-drive" id="saveBtnLeft" onclick="savePresetToDrive('left')" disabled>💾 Save</button>
+            </div>
           </div>
+          <div class="eq-sliders" id="eqSlidersLeft"></div>
         </div>
-        <div class="eq-sliders" id="eqSlidersLeft"></div>
-      </div>
-      
-      <div class="eq-channel" id="rightEqChannel">
-        <div class="eq-header">
-          <h2 class="right-title">Right Channel EQ</h2>
-          <div class="drive-btn-group">
-            <select id="presetListRight" class="preset-select" onchange="loadSelectedPreset('right')">
-              <option value="" disabled selected>-- Select Preset --</option>
-            </select>
-            <button class="btn-drive" id="saveBtnRight" onclick="savePresetToDrive('right')" disabled>💾 Save</button>
+        
+        <div class="eq-channel" id="rightEqChannel">
+          <div class="eq-header">
+            <h2 class="right-title">Right Channel EQ</h2>
+            <div class="drive-btn-group">
+              <div class="preset-wrapper">
+                <select id="presetListRight" class="preset-select" onfocus="this.size=6;" onblur="this.size=1;" onchange="this.size=1; this.blur(); loadSelectedPreset('right');">
+                  <option value="" disabled selected>-- Select Preset --</option>
+                </select>
+              </div>
+              <button class="btn-drive" id="saveBtnRight" onclick="savePresetToDrive('right')" disabled>💾 Save</button>
+            </div>
           </div>
+          <div class="eq-sliders" id="eqSlidersRight"></div>
         </div>
-        <div class="eq-sliders" id="eqSlidersRight"></div>
       </div>
     </div>
   </div>
@@ -460,7 +581,6 @@
     const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwU_HHHI1YhI_NXRQ8q67-ZbgGrhJGJN3iqLUYjS35KOhWiUWqO5_VZLgYala9IYtPP/exec";
     let currentPassword = "";
 
-    // Web Audio Synthesizer for Power Sound Effects
     function playPowerSound(type) {
       try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -515,10 +635,8 @@
       title.className = 'animated-title play-power-on';
       subtitle.className = 'animated-subtitle play-power-on';
 
-      // Play Power On Sound
       playPowerSound('on');
 
-      // Wait 3 seconds (3000ms) for animation to finish
       setTimeout(() => {
         animScreen.style.display = 'none';
         document.getElementById('lockScreen').style.display = 'flex';
@@ -542,10 +660,10 @@
       const subtitle = document.getElementById('animatedSubtitle');
 
       cancelTabAudio();
-      
-      // Stop and clear played audio
       resetDeck(1);
       resetDeck(2);
+
+      document.body.classList.remove('screen-locked');
 
       animScreen.style.display = 'flex';
       title.innerText = "Audio DJ Console";
@@ -555,7 +673,6 @@
       title.className = 'animated-title play-power-off';
       subtitle.className = 'animated-subtitle play-power-off';
 
-      // Play Power Off Sound
       playPowerSound('off');
 
       setTimeout(() => {
@@ -571,6 +688,25 @@
 
     function clearLockError() {
       document.getElementById('lockError').innerText = "";
+    }
+
+    /* Lock System Controls without Stopping Background Audio Playback */
+    function lockConsoleUI() {
+      document.body.classList.add('screen-locked');
+    }
+
+    function openUnlockPrompt() {
+      document.getElementById('lockScreen').style.display = 'flex';
+      document.getElementById('lockError').innerText = "";
+      const passInput = document.getElementById('passInput');
+      const unlockBtn = document.getElementById('unlockBtn');
+      const lockBox = document.getElementById('lockBox');
+
+      passInput.value = "";
+      passInput.disabled = false;
+      unlockBtn.disabled = false;
+      lockBox.classList.remove('verifying-anim', 'shake-anim');
+      passInput.focus();
     }
 
     function toggleFullscreen() {
@@ -605,12 +741,11 @@
       if (!enteredPass) {
         errBox.innerText = "Please enter a password!";
         lockBox.classList.remove('shake-anim');
-        void lockBox.offsetWidth; // Trigger reflow
+        void lockBox.offsetWidth;
         lockBox.classList.add('shake-anim');
         return;
       }
 
-      // Lock Field and Trigger Verifying Animation
       passInput.disabled = true;
       unlockBtn.disabled = true;
       lockBox.classList.remove('shake-anim');
@@ -625,6 +760,7 @@
           currentPassword = enteredPass;
           lockBox.classList.remove('verifying-anim');
           document.getElementById('lockScreen').style.display = 'none';
+          document.body.classList.remove('screen-locked');
           errBox.innerText = "";
           fetchAllPresets();
         } else {
@@ -632,7 +768,6 @@
           lockBox.classList.add('shake-anim');
           errBox.innerText = "❌ Incorrect password! Please try again.";
           
-          // Reset Input field for retry
           passInput.value = "";
           passInput.disabled = false;
           unlockBtn.disabled = false;
@@ -673,6 +808,7 @@
     const tabAudioToggle = document.getElementById('tabAudioToggle');
     const fileAudioToggle = document.getElementById('fileAudioToggle');
     const stereoToggle = document.getElementById('stereoToggle');
+    const tabAudioBtn = document.getElementById('tabAudioBtn');
 
     const deck1Card = document.getElementById('deck1Card');
     const deck2Card = document.getElementById('deck2Card');
@@ -681,7 +817,7 @@
     const leftEqTitle = document.getElementById('leftEqTitle');
     const deck1Title = document.getElementById('deck1Title');
     const folderControls = document.getElementById('folderControls');
-    const folderPlaylist = document.getElementById('folderPlaylist');
+    const folderPlaylistContainer = document.getElementById('folderPlaylistContainer');
 
     let audioCtx, analyser;
     let filtersLeft = [], filtersRight = [];
@@ -695,46 +831,83 @@
     let tabSource = null;
 
     let folderAudioFiles = [];
-    let currentFolderIndex = 0;
+    let dragSrcIndex = null;
+
+    stereoToggle.addEventListener('change', function() {
+      const beforeLbl = document.getElementById('stereoLabelBefore');
+      const afterLbl = document.getElementById('stereoLabelAfter');
+      
+      if (this.checked) {
+        beforeLbl.style.display = 'inline';
+        afterLbl.style.display = 'none';
+        rightEqChannel.style.display = 'flex';
+        leftEqTitle.innerText = "Left Channel EQ";
+        leftEqTitle.style.color = "#ff007f";
+      } else {
+        beforeLbl.style.display = 'none';
+        afterLbl.style.display = 'inline';
+        rightEqChannel.style.display = 'none';
+        leftEqTitle.innerText = "Master Equalizer (Mono L+R)";
+        leftEqTitle.style.color = "#00ffcc";
+        syncMonoEqualizer();
+      }
+    });
 
     fileAudioToggle.addEventListener('change', function() {
+      const beforeLbl = document.getElementById('fileAudioLabelBefore');
+      const afterLbl = document.getElementById('fileAudioLabelAfter');
       if (this.checked) {
+        beforeLbl.style.display = 'inline';
+        afterLbl.style.display = 'none';
         deck2Card.style.display = 'flex';
         crossfaderCard.style.display = 'block';
-        deck1Title.innerText = "Deck 1";
+        deck1Title.innerText = "Deck Audio File Player 1";
         folderControls.style.display = 'none';
         resetDeck1Btn.innerText = "➕ Add New File";
 
         file1.removeAttribute('webkitdirectory');
         file1.removeAttribute('directory');
+        file1.classList.remove('folder-mode-input');
       } else {
+        beforeLbl.style.display = 'none';
+        afterLbl.style.display = 'inline';
         deck2Card.style.display = 'none';
         crossfaderCard.style.display = 'none';
-        deck1Title.innerText = "Folder Audio Player";
+        deck1Title.innerText = "Deck Folder Audio Player";
         folderControls.style.display = 'flex';
         resetDeck1Btn.innerText = "➕ Add New Folder";
 
         file1.setAttribute('webkitdirectory', '');
         file1.setAttribute('directory', '');
+        file1.classList.add('folder-mode-input');
       }
       resetDeck(1);
       resetDeck(2);
+    });
+
+    tabAudioToggle.addEventListener('change', function() {
+      const beforeLbl = document.getElementById('tabAudioLabelBefore');
+      const afterLbl = document.getElementById('tabAudioLabelAfter');
+      
+      if (this.checked) {
+        beforeLbl.style.display = 'none';
+        afterLbl.style.display = 'inline';
+        tabAudioBtn.style.display = 'inline-block';
+        if (tabGainNode) tabGainNode.gain.value = 1;
+      } else {
+        beforeLbl.style.display = 'inline';
+        afterLbl.style.display = 'none';
+        tabAudioBtn.style.display = 'none';
+        if (tabGainNode) tabGainNode.gain.value = 0;
+      }
     });
 
     file1.addEventListener('change', function() {
       if (!fileAudioToggle.checked) {
         folderAudioFiles = Array.from(this.files).filter(f => f.type.startsWith('audio/') || /\.(mp3|wav|ogg|m4a|flac)$/i.test(f.name));
         
-        folderPlaylist.innerHTML = "";
         if (folderAudioFiles.length > 0) {
-          folderAudioFiles.forEach((file, idx) => {
-            const opt = document.createElement('option');
-            opt.value = idx;
-            opt.innerText = `${idx + 1}. ${file.name}`;
-            folderPlaylist.appendChild(opt);
-          });
-
-          currentFolderIndex = 0;
+          renderFolderPlaylistUI();
           playSelectedTrack(0);
 
           file1.style.display = 'none';
@@ -775,7 +948,8 @@
         resetDeck1Btn.style.display = 'none';
 
         folderAudioFiles = [];
-        folderPlaylist.innerHTML = "";
+        folderPlaylistContainer.innerHTML = "";
+        volVal1.innerText = fileAudioToggle.checked ? Math.round(Math.cos((parseFloat(crossfader.value)/100)*(Math.PI/2))*100) + '%' : "Files: 0";
       } else if (deckNum === 2) {
         audio2.pause();
         audio2.removeAttribute('src');
@@ -786,28 +960,101 @@
       }
     }
 
+    function renderFolderPlaylistUI() {
+      folderPlaylistContainer.innerHTML = "";
+      if (!fileAudioToggle.checked) {
+        volVal1.innerText = `Files: ${folderAudioFiles.length}`;
+      }
+
+      folderAudioFiles.forEach((file, idx) => {
+        const item = document.createElement('div');
+        item.className = `playlist-item ${idx === 0 ? 'active' : ''}`;
+        item.draggable = true;
+        item.dataset.index = idx;
+
+        item.innerHTML = `
+          <span><span class="drag-handle"><i class="fa-solid fa-grip-vertical"></i></span> ${idx + 1}.&nbsp;&nbsp;&nbsp;&nbsp;${file.name}</span>
+          ${idx === 0 ? '<i class="fa-solid fa-volume-high"></i>' : ''}
+        `;
+
+        item.addEventListener('click', (e) => {
+          if (!e.target.classList.contains('drag-handle') && !e.target.closest('.drag-handle')) {
+            playSelectedTrack(idx);
+          }
+        });
+
+        item.addEventListener('dragstart', handleDragStart);
+        item.addEventListener('dragover', handleDragOver);
+        item.addEventListener('drop', handleDrop);
+        item.addEventListener('dragend', handleDragEnd);
+
+        folderPlaylistContainer.appendChild(item);
+      });
+    }
+
+    function handleDragStart(e) {
+      dragSrcIndex = parseInt(this.dataset.index);
+      this.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    }
+
+    function handleDragOver(e) {
+      if (e.preventDefault) e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      return false;
+    }
+
+    function handleDrop(e) {
+      if (e.stopPropagation) e.stopPropagation();
+      const dropIndex = parseInt(this.dataset.index);
+
+      if (dragSrcIndex !== null && dragSrcIndex !== dropIndex) {
+        const movedItem = folderAudioFiles.splice(dragSrcIndex, 1)[0];
+        folderAudioFiles.splice(dropIndex, 0, movedItem);
+        renderFolderPlaylistUI();
+      }
+      return false;
+    }
+
+    function handleDragEnd() {
+      this.classList.remove('dragging');
+    }
+
     function playSelectedTrack(index) {
       index = parseInt(index);
       if (folderAudioFiles[index]) {
-        currentFolderIndex = index;
-        folderPlaylist.value = index;
-        audio1.src = URL.createObjectURL(folderAudioFiles[index]);
+        if (index !== 0) {
+          const selectedItem = folderAudioFiles.splice(index, 1)[0];
+          folderAudioFiles.unshift(selectedItem);
+        }
+        
+        renderFolderPlaylistUI();
+        
+        audio1.src = URL.createObjectURL(folderAudioFiles[0]);
         audio1.play();
         initAudioEngine();
       }
     }
 
     function playNextTrack() {
-      if (folderAudioFiles.length > 0) {
-        let nextIdx = (currentFolderIndex + 1) % folderAudioFiles.length;
-        playSelectedTrack(nextIdx);
+      if (folderAudioFiles.length > 1) {
+        const finishedTrack = folderAudioFiles.shift();
+        folderAudioFiles.push(finishedTrack);
+        renderFolderPlaylistUI();
+        
+        audio1.src = URL.createObjectURL(folderAudioFiles[0]);
+        audio1.play();
       }
     }
 
     function playPrevTrack() {
-      if (folderAudioFiles.length > 0) {
-        let prevIdx = (currentFolderIndex - 1 + folderAudioFiles.length) % folderAudioFiles.length;
-        playSelectedTrack(prevIdx);
+      if (folderAudioFiles.length > 1) {
+        const lastTrack = folderAudioFiles.pop();
+        folderAudioFiles.unshift(lastTrack);
+        renderFolderPlaylistUI();
+        
+        audio1.src = URL.createObjectURL(folderAudioFiles[0]);
+        audio1.play();
       }
     }
 
@@ -817,29 +1064,22 @@
       }
     });
 
-    stereoToggle.addEventListener('change', function() {
-      if (this.checked) {
-        rightEqChannel.style.display = 'flex';
-        leftEqTitle.innerText = "Left Channel EQ";
-        leftEqTitle.style.color = "#ff007f";
-      } else {
-        rightEqChannel.style.display = 'none';
-        leftEqTitle.innerText = "Master Equalizer (Mono L+R)";
-        leftEqTitle.style.color = "#00ffcc";
-        syncMonoEqualizer();
-      }
-    });
-
     function syncMonoEqualizer() {
-      if (!stereoToggle.checked) {
-        leftSliders.forEach((slider, index) => {
-          const val = parseFloat(slider.value);
-          if (rightSliders[index]) rightSliders[index].value = val;
-          if (filtersLeft[index]) filtersLeft[index].gain.value = val;
-          if (filtersRight[index]) filtersRight[index].gain.value = val;
-        });
-        checkSliderChanges('right');
+      leftSliders.forEach((slider, index) => {
+        const val = parseFloat(slider.value);
+        if (rightSliders[index]) rightSliders[index].value = val;
+        if (filtersLeft[index]) filtersLeft[index].gain.value = val;
+        if (filtersRight[index]) filtersRight[index].gain.value = val;
+      });
+      
+      const leftSelect = document.getElementById('presetListLeft');
+      const rightSelect = document.getElementById('presetListRight');
+      if (leftSelect && rightSelect) {
+        rightSelect.value = leftSelect.value;
       }
+      
+      loadedRightValues = [...leftSliders.map(s => parseFloat(s.value))];
+      checkSliderChanges('right');
     }
 
     function toggleTabAudio() {
@@ -868,14 +1108,14 @@
         if (!tabGainNode) {
           tabGainNode = audioCtx.createGain();
         }
+        
         tabGainNode.gain.value = tabAudioToggle.checked ? 1 : 0;
         
         tabSource.connect(tabGainNode);
         tabGainNode.connect(mainMixGain);
 
-        const tabBtn = document.getElementById('tabAudioBtn');
-        tabBtn.innerText = "❌ Cancel Tab Audio";
-        tabBtn.classList.add('active');
+        tabAudioBtn.innerText = "❌ Cancel Tab Audio";
+        tabAudioBtn.classList.add('active');
 
         audioTrack.onended = () => {
           cancelTabAudio();
@@ -897,14 +1137,9 @@
         tabSource = null;
       }
 
-      const tabBtn = document.getElementById('tabAudioBtn');
-      tabBtn.innerText = "🎵 Link Chrome Tab";
-      tabBtn.classList.remove('active');
+      tabAudioBtn.innerText = "🎵 Link Chrome Tab";
+      tabAudioBtn.classList.remove('active');
     }
-
-    tabAudioToggle.addEventListener('change', function() {
-      if (tabGainNode) tabGainNode.gain.value = this.checked ? 1 : 0;
-    });
 
     function createFilterChain() {
       return frequencies.map((freq) => {
@@ -1001,17 +1236,21 @@
         gainNode2.gain.value = v2;
       }
 
-      volVal1.innerText = Math.round(v1 * 100) + '%';
+      if (fileAudioToggle.checked) {
+        volVal1.innerText = Math.round(v1 * 100) + '%';
+      } else {
+        volVal1.innerText = `Files: ${folderAudioFiles.length}`;
+      }
       volVal2.innerText = Math.round(v2 * 100) + '%';
 
       if (val === 50) {
         crossfaderStatus.innerText = "Center (50/50)";
         crossfaderStatus.style.color = "#00ffcc";
       } else if (val < 50) {
-        crossfaderStatus.innerText = `Deck 1 (${Math.round(v1*100)}%)`;
+        crossfaderStatus.innerText = `Deck Audio File Player 1 (${Math.round(v1*100)}%)`;
         crossfaderStatus.style.color = "#ff007f";
       } else {
-        crossfaderStatus.innerText = `Deck 2 (${Math.round(v2*100)}%)`;
+        crossfaderStatus.innerText = `Deck Audio File Player 2 (${Math.round(v2*100)}%)`;
         crossfaderStatus.style.color = "#00bfff";
       }
     }
