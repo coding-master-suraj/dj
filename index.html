@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Full Display DJ Console</title>
+  <!-- Font Awesome CDN for Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
@@ -26,7 +28,7 @@
     .power-btn-main {
       width: 90px; height: 90px; border-radius: 50%;
       background: #151824; border: 2px solid #00ffcc;
-      color: #00ffcc; font-size: 2.5rem; cursor: pointer;
+      color: #00ffcc; font-size: 2.2rem; cursor: pointer;
       box-shadow: 0 0 25px rgba(0,255,204,0.4);
       display: flex; justify-content: center; align-items: center;
       transition: all 0.3s ease;
@@ -126,7 +128,7 @@
     .brand-header-box { display: flex; align-items: center; gap: 10px; }
     .btn-power-off-top {
       width: 28px; height: 28px; border-radius: 50%; background: #151824;
-      border: 1px solid #ff0055; color: #ff0055; font-size: 0.8rem; cursor: pointer;
+      border: 1px solid #ff0055; color: #ff0055; font-size: 0.85rem; cursor: pointer;
       display: flex; justify-content: center; align-items: center; transition: all 0.2s ease;
       box-shadow: 0 0 6px rgba(255, 0, 85, 0.3);
     }
@@ -295,7 +297,7 @@
 
   <!-- Power Screen (Start Position) -->
   <div id="powerScreen">
-    <button class="power-btn-main" onclick="powerOnSystem()">⏻</button>
+    <button class="power-btn-main" onclick="powerOnSystem()"><i class="fa-solid fa-power-off"></i></button>
     <div class="power-text-hint">PRESS TO POWER ON</div>
   </div>
 
@@ -318,7 +320,7 @@
   <div class="app-container">
     <div class="top-bar">
       <div class="brand-header-box">
-        <button class="btn-power-off-top" title="Power Off System" onclick="powerOffSystem()">⏻</button>
+        <button class="btn-power-off-top" title="Power Off System" onclick="powerOffSystem()"><i class="fa-solid fa-power-off"></i></button>
         <h1>Audio DJ Console</h1>
       </div>
       
