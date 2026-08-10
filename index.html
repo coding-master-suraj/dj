@@ -16,11 +16,77 @@
       user-select: none;
     }
 
+    /* System Power Start Screen */
+    #powerScreen {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: #08090e; display: flex; flex-direction: column;
+      justify-content: center; align-items: center; z-index: 10000;
+      transition: opacity 0.5s ease;
+    }
+    .power-btn-main {
+      width: 90px; height: 90px; border-radius: 50%;
+      background: #151824; border: 2px solid #00ffcc;
+      color: #00ffcc; font-size: 2.5rem; cursor: pointer;
+      box-shadow: 0 0 25px rgba(0,255,204,0.4);
+      display: flex; justify-content: center; align-items: center;
+      transition: all 0.3s ease;
+    }
+    .power-btn-main:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 40px rgba(0,255,204,0.8);
+      background: #00ffcc; color: #08090e;
+    }
+    .power-text-hint { margin-top: 15px; font-size: 0.85rem; color: #8f9bb3; letter-spacing: 1px; }
+
+    /* Intro & Power Off Title Animation Overlay */
+    #introAnimationScreen {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: #08090e; display: none; justify-content: center;
+      align-items: center; flex-direction: column; z-index: 9999;
+    }
+    .animated-title {
+      font-size: clamp(1.8rem, 5vw, 3.5rem);
+      color: #00ffcc;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      text-shadow: 0 0 20px #00ffcc, 0 0 40px #00ffcc;
+      opacity: 0;
+      transform: scale(0.5);
+      text-align: center;
+    }
+    .animated-subtitle {
+      font-size: clamp(0.8rem, 2vw, 1.2rem);
+      color: #ff007f;
+      letter-spacing: 2px;
+      text-shadow: 0 0 10px #ff007f;
+      margin-top: 10px;
+      opacity: 0;
+      transform: scale(0.5);
+      text-align: center;
+    }
+    
+    /* Animation duration set to 3 seconds */
+    @keyframes titlePowerOn {
+      0% { opacity: 0; transform: scale(0.3); filter: blur(10px); }
+      30% { opacity: 1; transform: scale(1.1); filter: blur(0px); }
+      70% { opacity: 1; transform: scale(1); filter: blur(0px); }
+      100% { opacity: 0; transform: scale(1.2); filter: blur(5px); }
+    }
+    @keyframes titlePowerOff {
+      0% { opacity: 1; transform: scale(1); filter: blur(0px); }
+      50% { opacity: 0.8; transform: scale(1.1); }
+      100% { opacity: 0; transform: scale(0.1); filter: blur(15px); }
+    }
+
+    .play-power-on { animation: titlePowerOn 3s forwards ease-in-out; }
+    .play-power-off { animation: titlePowerOff 3s forwards ease-in-out; }
+
+    /* Lock Screen */
     #lockScreen {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       background: rgba(8, 9, 14, 0.96); backdrop-filter: blur(15px);
-      display: flex; justify-content: center; align-items: center;
-      z-index: 9999; flex-direction: column; gap: 15px;
+      display: none; justify-content: center; align-items: center;
+      z-index: 9998; flex-direction: column; gap: 15px;
     }
     .lock-box {
       background: #151824; border: 1px solid #00ffcc; padding: 25px;
@@ -40,6 +106,7 @@
     }
     #lockError { color: #ff007f; font-size: 0.75rem; min-height: 15px; }
 
+    /* App Layout */
     .app-container {
       width: 100%; height: 100%; padding: 10px;
       display: flex; flex-direction: column; justify-content: space-between; gap: 8px;
@@ -55,6 +122,16 @@
       gap: 8px; 
       margin-top: 5px;
     }
+
+    .brand-header-box { display: flex; align-items: center; gap: 10px; }
+    .btn-power-off-top {
+      width: 28px; height: 28px; border-radius: 50%; background: #151824;
+      border: 1px solid #ff0055; color: #ff0055; font-size: 0.8rem; cursor: pointer;
+      display: flex; justify-content: center; align-items: center; transition: all 0.2s ease;
+      box-shadow: 0 0 6px rgba(255, 0, 85, 0.3);
+    }
+    .btn-power-off-top:hover { background: #ff0055; color: #fff; box-shadow: 0 0 10px #ff0055; }
+
     h1 { color: #00ffcc; text-shadow: 0 0 10px rgba(0, 255, 204, 0.5); font-size: clamp(0.9rem, 2vw, 1.2rem); text-transform: uppercase; }
     
     .top-bar-btns { display: flex; gap: 6px; align-items: center; }
@@ -63,6 +140,11 @@
       background: #00ffcc; color: #0a0c13; border: none; padding: 6px 12px;
       border-radius: 4px; font-size: 0.75rem; font-weight: bold; cursor: pointer;
       box-shadow: 0 0 8px rgba(0, 255, 204, 0.4);
+      transition: all 0.3s ease;
+    }
+    .btn-capture.active {
+      background: #ff0055; color: #ffffff;
+      box-shadow: 0 0 8px rgba(255, 0, 85, 0.6);
     }
     .btn-fullscreen {
       background: #1e2436; color: #00ffcc; border: 1px solid #00ffcc; padding: 5px 10px;
@@ -211,6 +293,18 @@
 </head>
 <body>
 
+  <!-- Power Screen (Start Position) -->
+  <div id="powerScreen">
+    <button class="power-btn-main" onclick="powerOnSystem()">⏻</button>
+    <div class="power-text-hint">PRESS TO POWER ON</div>
+  </div>
+
+  <!-- Intro Animation Screen -->
+  <div id="introAnimationScreen">
+    <div class="animated-title" id="animatedTitle">Audio DJ Console</div>
+    <div class="animated-subtitle" id="animatedSubtitle">Powered by Coding Master Suraj</div>
+  </div>
+
   <!-- Lock Screen -->
   <div id="lockScreen">
     <div class="lock-box">
@@ -223,10 +317,13 @@
 
   <div class="app-container">
     <div class="top-bar">
-      <h1>Audio DJ Console</h1>
+      <div class="brand-header-box">
+        <button class="btn-power-off-top" title="Power Off System" onclick="powerOffSystem()">⏻</button>
+        <h1>Audio DJ Console</h1>
+      </div>
       
       <div class="top-bar-btns">
-        <button class="btn-capture" onclick="captureTabAudio()">🎵 Link Chrome Tab</button>
+        <button class="btn-capture" id="tabAudioBtn" onclick="toggleTabAudio()">🎵 Link Chrome Tab</button>
         <button class="btn-fullscreen" id="fullscreenBtn" onclick="toggleFullscreen()">⛶ Fullscreen</button>
       </div>
 
@@ -331,6 +428,104 @@
     const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwU_HHHI1YhI_NXRQ8q67-ZbgGrhJGJN3iqLUYjS35KOhWiUWqO5_VZLgYala9IYtPP/exec";
     let currentPassword = "";
 
+    // Web Audio Synthesizer for Power Sound Effects
+    function playPowerSound(type) {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        const now = ctx.currentTime;
+
+        if (type === 'on') {
+          // Futuristic Power On sweep (Upward pitch)
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(150, now);
+          osc.frequency.exponentialRampToValueAtTime(880, now + 2.5);
+
+          gain.gain.setValueAtTime(0, now);
+          gain.gain.linearRampToValueAtTime(0.3, now + 0.3);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 2.9);
+
+          osc.start(now);
+          osc.stop(now + 3.0);
+        } else if (type === 'off') {
+          // Power Down sweep (Downward pitch)
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(600, now);
+          osc.frequency.exponentialRampToValueAtTime(40, now + 2.5);
+
+          gain.gain.setValueAtTime(0.3, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 2.9);
+
+          osc.start(now);
+          osc.stop(now + 3.0);
+        }
+      } catch (e) {
+        console.error("Audio Sound Effect Error:", e);
+      }
+    }
+
+    function powerOnSystem() {
+      const pScreen = document.getElementById('powerScreen');
+      const animScreen = document.getElementById('introAnimationScreen');
+      const title = document.getElementById('animatedTitle');
+      const subtitle = document.getElementById('animatedSubtitle');
+
+      pScreen.style.display = 'none';
+      animScreen.style.display = 'flex';
+      
+      title.innerText = "Audio DJ Console";
+      subtitle.innerText = "Powered by Coding Master Suraj";
+      subtitle.style.display = 'block';
+
+      title.className = 'animated-title play-power-on';
+      subtitle.className = 'animated-subtitle play-power-on';
+
+      // Play Power On Sound
+      playPowerSound('on');
+
+      // Wait 3 seconds (3000ms) for animation to finish
+      setTimeout(() => {
+        animScreen.style.display = 'none';
+        document.getElementById('lockScreen').style.display = 'flex';
+      }, 3000);
+    }
+
+    function powerOffSystem() {
+      const animScreen = document.getElementById('introAnimationScreen');
+      const title = document.getElementById('animatedTitle');
+      const subtitle = document.getElementById('animatedSubtitle');
+
+      cancelTabAudio();
+      resetDeck(1);
+      resetDeck(2);
+
+      animScreen.style.display = 'flex';
+      title.innerText = "Audio DJ Console";
+      subtitle.innerText = "Good Bye!";
+      subtitle.style.display = 'block';
+
+      title.className = 'animated-title play-power-off';
+      subtitle.className = 'animated-subtitle play-power-off';
+
+      // Play Power Off Sound
+      playPowerSound('off');
+
+      // Wait 3 seconds (3000ms) for animation to finish
+      setTimeout(() => {
+        animScreen.style.display = 'none';
+        document.getElementById('powerScreen').style.display = 'flex';
+        document.getElementById('lockScreen').style.display = 'none';
+        
+        currentPassword = "";
+        document.getElementById('passInput').value = "";
+      }, 3000);
+    }
+
     function toggleFullscreen() {
       if (!document.fullscreenElement) {
         document.documentElement.requestFullscreen().catch(err => {
@@ -422,6 +617,9 @@
     let tabGainNode, filesMasterGain, mainMixGain;
     let gainNode1, gainNode2;
     let isAudioCtxInitialized = false;
+
+    let tabStream = null;
+    let tabSource = null;
 
     let folderAudioFiles = [];
     let currentFolderIndex = 0;
@@ -571,28 +769,64 @@
       }
     }
 
+    function toggleTabAudio() {
+      if (tabStream) {
+        cancelTabAudio();
+      } else {
+        captureTabAudio();
+      }
+    }
+
     async function captureTabAudio() {
       try {
-        const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
-        const audioTrack = stream.getAudioTracks()[0];
+        tabStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+        const audioTrack = tabStream.getAudioTracks()[0];
+        
         if (!audioTrack) {
           alert("Please select 'Share tab audio' to capture tab audio!");
+          tabStream.getTracks().forEach(track => track.stop());
+          tabStream = null;
           return;
         }
 
         initAudioEngine();
-        const tabSource = audioCtx.createMediaStreamSource(new MediaStream([audioTrack]));
+        tabSource = audioCtx.createMediaStreamSource(new MediaStream([audioTrack]));
         
-        tabGainNode = audioCtx.createGain();
+        if (!tabGainNode) {
+          tabGainNode = audioCtx.createGain();
+        }
         tabGainNode.gain.value = tabAudioToggle.checked ? 1 : 0;
         
         tabSource.connect(tabGainNode);
         tabGainNode.connect(mainMixGain);
 
-        alert("Chrome Tab connected!");
+        const tabBtn = document.getElementById('tabAudioBtn');
+        tabBtn.innerText = "❌ Cancel Tab Audio";
+        tabBtn.classList.add('active');
+
+        audioTrack.onended = () => {
+          cancelTabAudio();
+        };
+
       } catch (err) {
         console.error("Tab Capture Failed: ", err);
+        cancelTabAudio();
       }
+    }
+
+    function cancelTabAudio() {
+      if (tabStream) {
+        tabStream.getTracks().forEach(track => track.stop());
+        tabStream = null;
+      }
+      if (tabSource) {
+        try { tabSource.disconnect(); } catch (e) {}
+        tabSource = null;
+      }
+
+      const tabBtn = document.getElementById('tabAudioBtn');
+      tabBtn.innerText = "🎵 Link Chrome Tab";
+      tabBtn.classList.remove('active');
     }
 
     tabAudioToggle.addEventListener('change', function() {
@@ -745,7 +979,6 @@
             }
           }
 
-          // প্রিসেট ম্যানুয়ালি নাড়ালেই সিলেক্ট করা ড্রপডাউন রিসেট হয়ে খালি হবে
           const channelKey = isLeft ? 'left' : 'right';
           const selectElem = document.getElementById(channelKey === 'left' ? 'presetListLeft' : 'presetListRight');
           if (selectElem && selectElem.value !== "") {
