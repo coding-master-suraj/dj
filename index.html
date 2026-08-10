@@ -196,6 +196,15 @@
       .eq-container { height: 42vh; }
       .switches-wrapper { width: 100%; justify-content: space-between; }
     }
+
+.body {
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none;    /* Firefox */
+  -ms-user-select: none;     /* IE / Edge */
+  user-select: none;         /* Chrome & standard browsers */
+}
+
+
   </style>
 </head>
 <body>
@@ -867,6 +876,42 @@
     }
 
     renderVisualizer();
-  </script>
+ 
+ 
+ 
+ // ১. মাউসের মাধ্যমে রাইট-ক্লিক (Context Menu) বন্ধ করা
+document.addEventListener('contextmenu', function (e) {
+  e.preventDefault();
+});
+
+// ২. টেক্সট সিলেকশন (Select) বন্ধ করা
+document.addEventListener('selectstart', function (e) {
+  e.preventDefault();
+});
+
+// ৩. কিবোর্ড শর্টকাটের সাহায্যে কপি করা বন্ধ করা (Ctrl+C, Ctrl+A, Ctrl+U, Ctrl+S)
+document.addEventListener('keydown', function (e) {
+  // Ctrl+C, Ctrl+A, Ctrl+U, Ctrl+S ট্র্যাপ করার জন্য
+  if (e.ctrlKey && ['c', 'a', 'u', 's', 'C', 'A', 'U', 'S'].includes(e.key)) {
+    e.preventDefault();
+  }
+});
+
+// ৪. কিবোর্ড শর্টকাট দিয়ে Inspect Element (F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C) বন্ধ করা
+document.addEventListener('keydown', function (e) {
+  // F12 Key
+  if (e.key === 'F12') {
+    e.preventDefault();
+  }
+  // Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C
+  if (e.ctrlKey && e.shiftKey && ['i', 'j', 'c', 'I', 'J', 'C'].includes(e.key)) {
+    e.preventDefault();
+  }
+});
+ 
+ 
+ 
+ </script>
+  
 </body>
 </html>
