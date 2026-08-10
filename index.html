@@ -94,19 +94,49 @@
       background: #151824; border: 1px solid #00ffcc; padding: 25px;
       border-radius: 12px; text-align: center; box-shadow: 0 0 20px rgba(0,255,204,0.2);
       max-width: 320px; width: 90%;
+      transition: all 0.3s ease;
     }
     .lock-box h2 { color: #00ffcc; font-size: 1.2rem; margin-bottom: 12px; }
     .lock-box input {
       width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #282d42;
       background: #0a0c13; color: #fff; text-align: center; font-size: 1.1rem;
       outline: none; margin-bottom: 12px;
+      transition: all 0.3s ease;
+    }
+    .lock-box input:disabled {
+      background: #1a1f2e;
+      color: #00ffcc;
+      border-color: #00ffcc;
+      cursor: not-allowed;
+      opacity: 0.8;
     }
     .lock-box button {
       width: 100%; padding: 10px; border-radius: 6px; border: none;
       background: #00ffcc; color: #08090e; font-weight: bold; cursor: pointer;
       font-size: 0.9rem;
+      transition: all 0.3s ease;
     }
-    #lockError { color: #ff007f; font-size: 0.75rem; min-height: 15px; }
+    .lock-box button:disabled {
+      background: #282d42;
+      color: #8f9bb3;
+      cursor: not-allowed;
+    }
+    #lockError { color: #ff007f; font-size: 0.75rem; min-height: 15px; margin-top: 8px; }
+
+    /* Keyframe Animations for Password Box Verification */
+    @keyframes verifyingPulse {
+      0% { box-shadow: 0 0 10px rgba(0,255,204,0.3); border-color: #00ffcc; }
+      50% { box-shadow: 0 0 30px rgba(0,255,204,0.9); border-color: #00ffcc; transform: scale(1.02); }
+      100% { box-shadow: 0 0 10px rgba(0,255,204,0.3); border-color: #00ffcc; }
+    }
+    @keyframes shakeError {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-10px); }
+      40%, 80% { transform: translateX(10px); }
+    }
+
+    .verifying-anim { animation: verifyingPulse 1s infinite ease-in-out; }
+    .shake-anim { animation: shakeError 0.4s ease-in-out; border-color: #ff007f !important; }
 
     /* App Layout */
     .app-container {
@@ -309,10 +339,10 @@
 
   <!-- Lock Screen -->
   <div id="lockScreen">
-    <div class="lock-box">
+    <div class="lock-box" id="lockBox">
       <h2>🔒 System Locked</h2>
-      <input type="password" id="passInput" placeholder="Type password..." onkeydown="if(event.key==='Enter') unlockSystem()">
-      <button onclick="unlockSystem()">UNLOCK</button>
+      <input type="password" id="passInput" placeholder="Type password..." oninput="clearLockError()" onkeydown="if(event.key==='Enter') unlockSystem()">
+      <button id="unlockBtn" onclick="unlockSystem()">UNLOCK</button>
       <div id="lockError"></div>
     </div>
   </div>
@@ -443,7 +473,6 @@
         const now = ctx.currentTime;
 
         if (type === 'on') {
-          // Futuristic Power On sweep (Upward pitch)
           osc.type = 'sine';
           osc.frequency.setValueAtTime(150, now);
           osc.frequency.exponentialRampToValueAtTime(880, now + 2.5);
@@ -455,7 +484,6 @@
           osc.start(now);
           osc.stop(now + 3.0);
         } else if (type === 'off') {
-          // Power Down sweep (Downward pitch)
           osc.type = 'sawtooth';
           osc.frequency.setValueAtTime(600, now);
           osc.frequency.exponentialRampToValueAtTime(40, now + 2.5);
@@ -494,6 +522,17 @@
       setTimeout(() => {
         animScreen.style.display = 'none';
         document.getElementById('lockScreen').style.display = 'flex';
+        document.getElementById('lockError').innerText = "";
+        
+        const passInput = document.getElementById('passInput');
+        const unlockBtn = document.getElementById('unlockBtn');
+        const lockBox = document.getElementById('lockBox');
+
+        passInput.value = "";
+        passInput.disabled = false;
+        unlockBtn.disabled = false;
+        lockBox.classList.remove('verifying-anim', 'shake-anim');
+        passInput.focus();
       }, 3000);
     }
 
@@ -503,6 +542,8 @@
       const subtitle = document.getElementById('animatedSubtitle');
 
       cancelTabAudio();
+      
+      // Stop and clear played audio
       resetDeck(1);
       resetDeck(2);
 
@@ -517,7 +558,6 @@
       // Play Power Off Sound
       playPowerSound('off');
 
-      // Wait 3 seconds (3000ms) for animation to finish
       setTimeout(() => {
         animScreen.style.display = 'none';
         document.getElementById('powerScreen').style.display = 'flex';
@@ -525,7 +565,12 @@
         
         currentPassword = "";
         document.getElementById('passInput').value = "";
+        document.getElementById('lockError').innerText = "";
       }, 3000);
+    }
+
+    function clearLockError() {
+      document.getElementById('lockError').innerText = "";
     }
 
     function toggleFullscreen() {
@@ -551,14 +596,25 @@
 
     async function unlockSystem() {
       const passInput = document.getElementById('passInput');
+      const unlockBtn = document.getElementById('unlockBtn');
       const errBox = document.getElementById('lockError');
+      const lockBox = document.getElementById('lockBox');
+
       const enteredPass = passInput.value.trim();
 
       if (!enteredPass) {
         errBox.innerText = "Please enter a password!";
+        lockBox.classList.remove('shake-anim');
+        void lockBox.offsetWidth; // Trigger reflow
+        lockBox.classList.add('shake-anim');
         return;
       }
 
+      // Lock Field and Trigger Verifying Animation
+      passInput.disabled = true;
+      unlockBtn.disabled = true;
+      lockBox.classList.remove('shake-anim');
+      lockBox.classList.add('verifying-anim');
       errBox.innerText = "Verifying...";
 
       try {
@@ -567,14 +623,29 @@
 
         if (data.status === "success") {
           currentPassword = enteredPass;
+          lockBox.classList.remove('verifying-anim');
           document.getElementById('lockScreen').style.display = 'none';
+          errBox.innerText = "";
           fetchAllPresets();
         } else {
+          lockBox.classList.remove('verifying-anim');
+          lockBox.classList.add('shake-anim');
           errBox.innerText = "❌ Incorrect password! Please try again.";
+          
+          // Reset Input field for retry
           passInput.value = "";
+          passInput.disabled = false;
+          unlockBtn.disabled = false;
+          passInput.focus();
         }
       } catch (err) {
+        lockBox.classList.remove('verifying-anim');
+        lockBox.classList.add('shake-anim');
         errBox.innerText = "Connection error!";
+        
+        passInput.disabled = false;
+        unlockBtn.disabled = false;
+        passInput.focus();
       }
     }
 
@@ -901,6 +972,14 @@
       analyser.connect(audioCtx.destination);
 
       isAudioCtxInitialized = true;
+
+      leftSliders.forEach((s, idx) => {
+        if (filtersLeft[idx]) filtersLeft[idx].gain.value = parseFloat(s.value);
+      });
+      rightSliders.forEach((s, idx) => {
+        if (filtersRight[idx]) filtersRight[idx].gain.value = parseFloat(s.value);
+      });
+
       updateCrossfader();
       renderVisualizer();
     }
