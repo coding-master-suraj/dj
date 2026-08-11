@@ -145,7 +145,6 @@
       margin-top: 5px;
     }
 
-    /* Arranged strictly: Power Off Button -> Title -> Lock */
     .brand-header-box { display: flex; align-items: center; gap: 12px; }
     .btn-power-off-top {
       width: 32px; height: 32px; border-radius: 50%; background: #151824;
@@ -165,7 +164,7 @@
 
     h1 { color: #00ffcc; text-shadow: 0 0 10px rgba(0, 255, 204, 0.5); font-size: clamp(0.9rem, 2vw, 1.2rem); text-transform: uppercase; }
     
-    .top-bar-btns { display: flex; gap: 6px; align-items: center; }
+    .top-bar-btns { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 
     .btn-capture {
       background: #00ffcc; color: #0a0c13; border: none; padding: 6px 12px;
@@ -179,6 +178,22 @@
       border-radius: 4px; font-size: 0.75rem; font-weight: bold; cursor: pointer;
     }
     .btn-fullscreen:hover { background: #00ffcc; color: #08090e; }
+
+    /* Echo Delay Slider Bar Group */
+    .echo-control-group {
+      display: flex; gap: 6px; align-items: center; background: #151824; padding: 4px 8px; border-radius: 6px; border: 1px solid #282d42;
+    }
+    .echo-label { font-size: 0.65rem; color: #ffcc00; font-weight: bold; }
+    .echo-val-display { font-size: 0.65rem; color: #00ffcc; font-weight: bold; min-width: 30px; text-align: right; }
+    
+    input[type="range"].echo-slider {
+      -webkit-appearance: none; width: 90px; height: 5px; border-radius: 3px;
+      background: #0a0c13; border: 1px solid #282d42; outline: none;
+    }
+    input[type="range"].echo-slider::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 12px; height: 14px; border-radius: 3px;
+      background: #00ffcc; border: 1px solid #ffffff; cursor: pointer;
+    }
 
     .switches-wrapper { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
     .source-switch-box {
@@ -203,10 +218,10 @@
     input:checked + .slider { background-color: #00ffcc; border-color: #00ffcc; }
     input:checked + .slider:before { transform: translateX(18px); background-color: #0a0c13; }
 
-    /* Visualizer Container */
+    /* Visualizer Container - Adjusted height for full visibility */
     .visualizer-container {
       position: relative;
-      width: 100%; height: 14vh; min-height: 80px;
+      width: 100%; height: 16vh; min-height: 90px;
       background: #000000; border-radius: 10px; overflow: hidden;
       flex-shrink: 0; padding: 2px; border: 1px solid #1a2233;
       box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.9), 0 0 15px rgba(0, 255, 204, 0.1);
@@ -397,7 +412,6 @@
     body.screen-locked .controls-wrapper {
       display: none !important;
     }
-    /* Visualizer remains fixed at top in screen lock mode */
     body.screen-locked .visualizer-container {
       height: 60vh !important;
       border-radius: 0 0 15px 15px;
@@ -440,7 +454,7 @@
   </div>
 
   <div class="app-container">
-    <!-- Top Header Bar Rearranged: Power Off -> Title -> Lock -->
+    <!-- Top Header Bar -->
     <div class="top-bar">
       <div class="brand-header-box">
         <button class="btn-power-off-top" title="Power Off System" onclick="powerOffSystem()"><i class="fa-solid fa-power-off"></i></button>
@@ -451,6 +465,13 @@
       <div class="top-bar-btns">
         <button class="btn-capture" id="tabAudioBtn" onclick="toggleTabAudio()">🎵 Link Chrome Tab</button>
         <button class="btn-fullscreen" id="fullscreenBtn" onclick="toggleFullscreen()">⛶ Fullscreen</button>
+        
+        <!-- Echo Delay Range Slider Bar (-100 to +100) -->
+        <div class="echo-control-group">
+          <span class="echo-label">ECHO:</span>
+          <input type="range" id="echoSlider" class="echo-slider" min="-100" max="100" value="0" step="1" oninput="updateEchoFromSlider(this.value)">
+          <span class="echo-val-display" id="echoValText">0</span>
+        </div>
       </div>
 
       <div class="switches-wrapper">
@@ -491,7 +512,7 @@
       <canvas id="canvas"></canvas>
     </div>
 
-    <!-- Large RGB Ring Light Unlock Button Box (Placed between Middle and Bottom in Locked Mode) -->
+    <!-- Large RGB Ring Light Unlock Button Box -->
     <div id="rgbLockContainer" onclick="openUnlockPrompt()">
       <div class="rgb-orbit-ring">
         <div class="rgb-dot"></div>
@@ -580,6 +601,7 @@
   <script>
     const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwU_HHHI1YhI_NXRQ8q67-ZbgGrhJGJN3iqLUYjS35KOhWiUWqO5_VZLgYala9IYtPP/exec";
     let currentPassword = "";
+    let delayNode = null; // Echo/Delay Node
 
     function playPowerSound(type) {
       try {
@@ -690,7 +712,6 @@
       document.getElementById('lockError').innerText = "";
     }
 
-    /* Lock System Controls without Stopping Background Audio Playback */
     function lockConsoleUI() {
       document.body.classList.add('screen-locked');
     }
@@ -832,6 +853,16 @@
 
     let folderAudioFiles = [];
     let dragSrcIndex = null;
+
+    function updateEchoFromSlider(val) {
+      const numVal = parseInt(val);
+      document.getElementById('echoValText').innerText = numVal;
+
+      if (delayNode && audioCtx) {
+        const delaySeconds = (numVal / 1000);
+        delayNode.delayTime.setValueAtTime(Math.max(0, delaySeconds), audioCtx.currentTime);
+      }
+    }
 
     stereoToggle.addEventListener('change', function() {
       const beforeLbl = document.getElementById('stereoLabelBefore');
@@ -1092,7 +1123,16 @@
 
     async function captureTabAudio() {
       try {
-        tabStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+        const constraints = {
+          video: true,
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true
+          }
+        };
+
+        tabStream = await navigator.mediaDevices.getDisplayMedia(constraints);
         const audioTrack = tabStream.getAudioTracks()[0];
         
         if (!audioTrack) {
@@ -1109,7 +1149,7 @@
           tabGainNode = audioCtx.createGain();
         }
         
-        tabGainNode.gain.value = tabAudioToggle.checked ? 1 : 0;
+        tabGainNode.gain.value = 1;
         
         tabSource.connect(tabGainNode);
         tabGainNode.connect(mainMixGain);
@@ -1165,12 +1205,16 @@
       audioCtx = new AudioContext();
 
       filesMasterGain = audioCtx.createGain();
-      filesMasterGain.gain.value = 1;
+      filesMasterGain.gain.value = 1.0;
 
       gainNode1 = audioCtx.createGain();
       gainNode2 = audioCtx.createGain();
 
       mainMixGain = audioCtx.createGain();
+      mainMixGain.gain.value = 1.0;
+
+      delayNode = audioCtx.createDelay(2.0);
+      delayNode.delayTime.value = 0;
 
       const source1 = audioCtx.createMediaElementSource(audio1);
       const source2 = audioCtx.createMediaElementSource(audio2);
@@ -1203,7 +1247,8 @@
       analyser = audioCtx.createAnalyser();
       analyser.fftSize = 128;
 
-      merger.connect(analyser);
+      merger.connect(delayNode);
+      delayNode.connect(analyser);
       analyser.connect(audioCtx.destination);
 
       isAudioCtxInitialized = true;
@@ -1451,7 +1496,7 @@
       const barSpacing = 2;
       const barWidth = (canvas.width - (numBars * barSpacing)) / numBars;
 
-      const maxBlocks = 18;
+      const maxBlocks = 14; /* Adjusted block bounds to securely fit display size */
       const blockHeight = 2.5;
       const blockGap = 1.2;
 
