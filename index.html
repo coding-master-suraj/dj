@@ -179,20 +179,23 @@
     }
     .btn-fullscreen:hover { background: #00ffcc; color: #08090e; }
 
-    /* Echo Delay Slider Bar Group */
+    /* Echo Delay Control Group with Checkbox Box */
     .echo-control-group {
       display: flex; gap: 6px; align-items: center; background: #151824; padding: 4px 8px; border-radius: 6px; border: 1px solid #282d42;
     }
-    .echo-label { font-size: 0.65rem; color: #ffcc00; font-weight: bold; }
+    .echo-label { font-size: 0.65rem; color: #ffcc00; font-weight: bold; display: flex; align-items: center; gap: 4px; cursor: pointer; }
+    .echo-checkbox {
+      width: 14px; height: 14px; accent-color: #ffcc00; cursor: pointer;
+    }
     .echo-val-display { font-size: 0.65rem; color: #00ffcc; font-weight: bold; min-width: 30px; text-align: right; }
     
     input[type="range"].echo-slider {
-      -webkit-appearance: none; width: 90px; height: 5px; border-radius: 3px;
+      -webkit-appearance: none; width: 80px; height: 5px; border-radius: 3px;
       background: #0a0c13; border: 1px solid #282d42; outline: none;
     }
     input[type="range"].echo-slider::-webkit-slider-thumb {
       -webkit-appearance: none; width: 12px; height: 14px; border-radius: 3px;
-      background: #00ffcc; border: 1px solid #ffffff; cursor: pointer;
+      background: #ffcc00; border: 1px solid #ffffff; cursor: pointer;
     }
 
     .switches-wrapper { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
@@ -218,7 +221,7 @@
     input:checked + .slider { background-color: #00ffcc; border-color: #00ffcc; }
     input:checked + .slider:before { transform: translateX(18px); background-color: #0a0c13; }
 
-    /* Visualizer Container - Adjusted height for full visibility */
+    /* Visualizer Container */
     .visualizer-container {
       position: relative;
       width: 100%; height: 16vh; min-height: 90px;
@@ -351,7 +354,7 @@
       -webkit-appearance: none; width: 100%; height: 8px; border-radius: 2px; background: #00ffcc; border: 1px solid #ffffff;
     }
 
-    /* Floating Large RGB Ring Light Unlock Button Container Positioned exactly Between Middle and Bottom */
+    /* Floating Large RGB Ring Light Unlock Button Container */
     #rgbLockContainer {
       display: none;
       position: fixed;
@@ -407,7 +410,6 @@
       text-transform: uppercase; text-shadow: 0 0 8px #00ffcc;
     }
 
-    /* Screen Locked Mode Styles */
     body.screen-locked .top-bar,
     body.screen-locked .controls-wrapper {
       display: none !important;
@@ -431,7 +433,7 @@
 </head>
 <body>
 
-  <!-- Power Screen (Start Position) -->
+  <!-- Power Screen -->
   <div id="powerScreen">
     <button class="power-btn-main" onclick="powerOnSystem()"><i class="fa-solid fa-power-off"></i></button>
     <div class="power-text-hint">PRESS TO POWER ON</div>
@@ -443,7 +445,7 @@
     <div class="animated-subtitle" id="animatedSubtitle">Powered by Coding Master Suraj</div>
   </div>
 
-  <!-- Lock Screen Overlay (Password Input Modal) -->
+  <!-- Lock Screen Overlay -->
   <div id="lockScreen">
     <div class="lock-box" id="lockBox">
       <h2>🔒 System Locked</h2>
@@ -466,11 +468,13 @@
         <button class="btn-capture" id="tabAudioBtn" onclick="toggleTabAudio()">🎵 Link Chrome Tab</button>
         <button class="btn-fullscreen" id="fullscreenBtn" onclick="toggleFullscreen()">⛶ Fullscreen</button>
         
-        <!-- Echo Delay Range Slider Bar (-100 to +100) -->
+        <!-- Echo Control Group with Checkbox Box -->
         <div class="echo-control-group">
-          <span class="echo-label">ECHO:</span>
-          <input type="range" id="echoSlider" class="echo-slider" min="-100" max="100" value="0" step="1" oninput="updateEchoFromSlider(this.value)">
-          <span class="echo-val-display" id="echoValText">0</span>
+          <label class="echo-label" for="echoCheckbox">
+            <input type="checkbox" id="echoCheckbox" class="echo-checkbox" onchange="toggleEchoCheckbox(this)"> ECHO:
+          </label>
+          <input type="range" id="echoSlider" class="echo-slider" min="0" max="100" value="0" step="1" oninput="updateEchoFromSlider(this.value)">
+          <span class="echo-val-display" id="echoValText">0%</span>
         </div>
       </div>
 
@@ -507,7 +511,7 @@
       </div>
     </div>
 
-    <!-- Visualizer Dancing Display -->
+    <!-- Visualizer Container -->
     <div class="visualizer-container">
       <canvas id="canvas"></canvas>
     </div>
@@ -601,7 +605,8 @@
   <script>
     const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwU_HHHI1YhI_NXRQ8q67-ZbgGrhJGJN3iqLUYjS35KOhWiUWqO5_VZLgYala9IYtPP/exec";
     let currentPassword = "";
-    let delayNode = null; // Echo/Delay Node
+    let delayNode = null; 
+    let echoGainNode = null; // Boosts Echo intensity up to 100%
 
     function playPowerSound(type) {
       try {
@@ -854,13 +859,33 @@
     let folderAudioFiles = [];
     let dragSrcIndex = null;
 
+    function toggleEchoCheckbox(checkbox) {
+      const sliderVal = parseInt(document.getElementById('echoSlider').value);
+      if (checkbox.checked) {
+        updateEchoFromSlider(sliderVal > 0 ? sliderVal : 30); // Default to 30% if 0 when checked
+        if (sliderVal === 0) document.getElementById('echoSlider').value = 30;
+      } else {
+        updateEchoFromSlider(0);
+      }
+    }
+
     function updateEchoFromSlider(val) {
       const numVal = parseInt(val);
-      document.getElementById('echoValText').innerText = numVal;
+      document.getElementById('echoValText').innerText = numVal + '%';
+      const checkbox = document.getElementById('echoCheckbox');
 
-      if (delayNode && audioCtx) {
-        const delaySeconds = (numVal / 1000);
-        delayNode.delayTime.setValueAtTime(Math.max(0, delaySeconds), audioCtx.currentTime);
+      if (numVal > 0 && !checkbox.checked) {
+        checkbox.checked = true;
+      } else if (numVal === 0) {
+        checkbox.checked = false;
+      }
+
+      if (delayNode && echoGainNode && audioCtx) {
+        // Set fixed echo time delay (e.g., 0.25 seconds for a nice beat echo)
+        delayNode.delayTime.setValueAtTime(0.25, audioCtx.currentTime);
+        // Boost gain up to 1.8x at 100% slider value for prominent echo
+        const gainIntensity = (numVal / 100) * 1.8;
+        echoGainNode.gain.setValueAtTime(gainIntensity, audioCtx.currentTime);
       }
     }
 
@@ -1213,8 +1238,12 @@
       mainMixGain = audioCtx.createGain();
       mainMixGain.gain.value = 1.0;
 
+      // Echo Delay & Feedback Chain setup
       delayNode = audioCtx.createDelay(2.0);
-      delayNode.delayTime.value = 0;
+      delayNode.delayTime.value = 0.25;
+      
+      echoGainNode = audioCtx.createGain();
+      echoGainNode.gain.value = 0; // Starts at 0 until slider/checkbox is activated
 
       const source1 = audioCtx.createMediaElementSource(audio1);
       const source2 = audioCtx.createMediaElementSource(audio2);
@@ -1247,9 +1276,13 @@
       analyser = audioCtx.createAnalyser();
       analyser.fftSize = 128;
 
-      merger.connect(delayNode);
-      delayNode.connect(analyser);
+      // Routing Echo loop back into merger for rich spatial depth & volume boost
+      merger.connect(analyser);
       analyser.connect(audioCtx.destination);
+
+      merger.connect(delayNode);
+      delayNode.connect(echoGainNode);
+      echoGainNode.connect(merger); // Feedback loop
 
       isAudioCtxInitialized = true;
 
@@ -1496,7 +1529,7 @@
       const barSpacing = 2;
       const barWidth = (canvas.width - (numBars * barSpacing)) / numBars;
 
-      const maxBlocks = 14; /* Adjusted block bounds to securely fit display size */
+      const maxBlocks = 14;
       const blockHeight = 2.5;
       const blockGap = 1.2;
 
