@@ -179,7 +179,7 @@
     }
     .btn-fullscreen:hover { background: #00ffcc; color: #08090e; }
 
-    /* Echo Delay Control Group with Checkbox Box */
+    /* Echo Control Group with Checkbox Box */
     .echo-control-group {
       display: flex; gap: 6px; align-items: center; background: #151824; padding: 4px 8px; border-radius: 6px; border: 1px solid #282d42;
     }
@@ -284,10 +284,11 @@
     .folder-playlist-container {
       flex: 1; background: #0a0c13; border: 1px solid #282d42;
       border-radius: 4px; max-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; padding: 2px;
+      scroll-behavior: smooth;
     }
     .playlist-item {
       display: flex; align-items: center; justify-content: space-between; background: #131722;
-      border: 1px solid #1a2233; padding: 3px 6px; border-radius: 3px; cursor: pointer; font-size: 0.7rem; color: #b0b9d0;
+      border: 1px solid #1a2233; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; color: #b0b9d0;
     }
     .playlist-item.active { background: rgba(0, 255, 204, 0.15); border-color: #00ffcc; color: #00ffcc; font-weight: bold; }
     .playlist-item.dragging { opacity: 0.4; border: 1px dashed #00ffcc; }
@@ -606,7 +607,7 @@
     const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwU_HHHI1YhI_NXRQ8q67-ZbgGrhJGJN3iqLUYjS35KOhWiUWqO5_VZLgYala9IYtPP/exec";
     let currentPassword = "";
     let delayNode = null; 
-    let echoGainNode = null; // Boosts Echo intensity up to 100%
+    let echoGainNode = null; 
 
     function playPowerSound(type) {
       try {
@@ -857,12 +858,13 @@
     let tabSource = null;
 
     let folderAudioFiles = [];
+    let currentFolderIndex = 0; 
     let dragSrcIndex = null;
 
     function toggleEchoCheckbox(checkbox) {
       const sliderVal = parseInt(document.getElementById('echoSlider').value);
       if (checkbox.checked) {
-        updateEchoFromSlider(sliderVal > 0 ? sliderVal : 30); // Default to 30% if 0 when checked
+        updateEchoFromSlider(sliderVal > 0 ? sliderVal : 30);
         if (sliderVal === 0) document.getElementById('echoSlider').value = 30;
       } else {
         updateEchoFromSlider(0);
@@ -881,9 +883,7 @@
       }
 
       if (delayNode && echoGainNode && audioCtx) {
-        // Set fixed echo time delay (e.g., 0.25 seconds for a nice beat echo)
         delayNode.delayTime.setValueAtTime(0.25, audioCtx.currentTime);
-        // Boost gain up to 1.8x at 100% slider value for prominent echo
         const gainIntensity = (numVal / 100) * 1.8;
         echoGainNode.gain.setValueAtTime(gainIntensity, audioCtx.currentTime);
       }
@@ -912,6 +912,10 @@
     fileAudioToggle.addEventListener('change', function() {
       const beforeLbl = document.getElementById('fileAudioLabelBefore');
       const afterLbl = document.getElementById('fileAudioLabelAfter');
+      
+      audio1.pause();
+      audio2.pause();
+
       if (this.checked) {
         beforeLbl.style.display = 'inline';
         afterLbl.style.display = 'none';
@@ -939,6 +943,10 @@
       }
       resetDeck(1);
       resetDeck(2);
+      
+      // ক্রসফডার এবং ডেকের ভলিউম পুরোপুরি রিফ্রেশ করার জন্য স্লাইডার মিডল পজিশনে সেট করা হলো
+      crossfader.value = 50;
+      updateCrossfader();
     });
 
     tabAudioToggle.addEventListener('change', function() {
@@ -963,6 +971,7 @@
         folderAudioFiles = Array.from(this.files).filter(f => f.type.startsWith('audio/') || /\.(mp3|wav|ogg|m4a|flac)$/i.test(f.name));
         
         if (folderAudioFiles.length > 0) {
+          currentFolderIndex = 0; 
           renderFolderPlaylistUI();
           playSelectedTrack(0);
 
@@ -1004,8 +1013,8 @@
         resetDeck1Btn.style.display = 'none';
 
         folderAudioFiles = [];
+        currentFolderIndex = 0;
         folderPlaylistContainer.innerHTML = "";
-        volVal1.innerText = fileAudioToggle.checked ? Math.round(Math.cos((parseFloat(crossfader.value)/100)*(Math.PI/2))*100) + '%' : "Files: 0";
       } else if (deckNum === 2) {
         audio2.pause();
         audio2.removeAttribute('src');
@@ -1014,23 +1023,21 @@
         file2.style.display = 'block';
         resetDeck2Btn.style.display = 'none';
       }
+      updateCrossfader();
     }
 
     function renderFolderPlaylistUI() {
       folderPlaylistContainer.innerHTML = "";
-      if (!fileAudioToggle.checked) {
-        volVal1.innerText = `Files: ${folderAudioFiles.length}`;
-      }
 
       folderAudioFiles.forEach((file, idx) => {
         const item = document.createElement('div');
-        item.className = `playlist-item ${idx === 0 ? 'active' : ''}`;
+        item.className = `playlist-item ${idx === currentFolderIndex ? 'active' : ''}`;
         item.draggable = true;
         item.dataset.index = idx;
 
         item.innerHTML = `
           <span><span class="drag-handle"><i class="fa-solid fa-grip-vertical"></i></span> ${idx + 1}.&nbsp;&nbsp;&nbsp;&nbsp;${file.name}</span>
-          ${idx === 0 ? '<i class="fa-solid fa-volume-high"></i>' : ''}
+          ${idx === currentFolderIndex ? '<i class="fa-solid fa-volume-high"></i>' : ''}
         `;
 
         item.addEventListener('click', (e) => {
@@ -1046,6 +1053,15 @@
 
         folderPlaylistContainer.appendChild(item);
       });
+
+      setTimeout(scrollToActiveTrack, 50);
+    }
+
+    function scrollToActiveTrack() {
+      const activeItem = folderPlaylistContainer.querySelector('.playlist-item.active');
+      if (activeItem) {
+        folderPlaylistContainer.scrollTop = activeItem.offsetTop - folderPlaylistContainer.offsetTop;
+      }
     }
 
     function handleDragStart(e) {
@@ -1067,6 +1083,15 @@
       if (dragSrcIndex !== null && dragSrcIndex !== dropIndex) {
         const movedItem = folderAudioFiles.splice(dragSrcIndex, 1)[0];
         folderAudioFiles.splice(dropIndex, 0, movedItem);
+
+        if (dragSrcIndex === currentFolderIndex) {
+          currentFolderIndex = dropIndex;
+        } else if (dragSrcIndex < currentFolderIndex && dropIndex >= currentFolderIndex) {
+          currentFolderIndex--;
+        } else if (dragSrcIndex > currentFolderIndex && dropIndex <= currentFolderIndex) {
+          currentFolderIndex++;
+        }
+
         renderFolderPlaylistUI();
       }
       return false;
@@ -1079,37 +1104,37 @@
     function playSelectedTrack(index) {
       index = parseInt(index);
       if (folderAudioFiles[index]) {
-        if (index !== 0) {
-          const selectedItem = folderAudioFiles.splice(index, 1)[0];
-          folderAudioFiles.unshift(selectedItem);
-        }
-        
+        currentFolderIndex = index; 
         renderFolderPlaylistUI();
         
-        audio1.src = URL.createObjectURL(folderAudioFiles[0]);
+        audio1.src = URL.createObjectURL(folderAudioFiles[currentFolderIndex]);
         audio1.play();
         initAudioEngine();
       }
     }
 
     function playNextTrack() {
-      if (folderAudioFiles.length > 1) {
-        const finishedTrack = folderAudioFiles.shift();
-        folderAudioFiles.push(finishedTrack);
+      if (folderAudioFiles.length > 0) {
+        currentFolderIndex++;
+        if (currentFolderIndex >= folderAudioFiles.length) {
+          currentFolderIndex = 0;
+        }
         renderFolderPlaylistUI();
         
-        audio1.src = URL.createObjectURL(folderAudioFiles[0]);
+        audio1.src = URL.createObjectURL(folderAudioFiles[currentFolderIndex]);
         audio1.play();
       }
     }
 
     function playPrevTrack() {
-      if (folderAudioFiles.length > 1) {
-        const lastTrack = folderAudioFiles.pop();
-        folderAudioFiles.unshift(lastTrack);
+      if (folderAudioFiles.length > 0) {
+        currentFolderIndex--;
+        if (currentFolderIndex < 0) {
+          currentFolderIndex = folderAudioFiles.length - 1;
+        }
         renderFolderPlaylistUI();
         
-        audio1.src = URL.createObjectURL(folderAudioFiles[0]);
+        audio1.src = URL.createObjectURL(folderAudioFiles[currentFolderIndex]);
         audio1.play();
       }
     }
@@ -1238,12 +1263,11 @@
       mainMixGain = audioCtx.createGain();
       mainMixGain.gain.value = 1.0;
 
-      // Echo Delay & Feedback Chain setup
       delayNode = audioCtx.createDelay(2.0);
       delayNode.delayTime.value = 0.25;
       
       echoGainNode = audioCtx.createGain();
-      echoGainNode.gain.value = 0; // Starts at 0 until slider/checkbox is activated
+      echoGainNode.gain.value = 0;
 
       const source1 = audioCtx.createMediaElementSource(audio1);
       const source2 = audioCtx.createMediaElementSource(audio2);
@@ -1276,13 +1300,12 @@
       analyser = audioCtx.createAnalyser();
       analyser.fftSize = 128;
 
-      // Routing Echo loop back into merger for rich spatial depth & volume boost
       merger.connect(analyser);
       analyser.connect(audioCtx.destination);
 
       merger.connect(delayNode);
       delayNode.connect(echoGainNode);
-      echoGainNode.connect(merger); // Feedback loop
+      echoGainNode.connect(merger);
 
       isAudioCtxInitialized = true;
 
@@ -1325,7 +1348,7 @@
         crossfaderStatus.innerText = "Center (50/50)";
         crossfaderStatus.style.color = "#00ffcc";
       } else if (val < 50) {
-        crossfaderStatus.innerText = `Deck Audio File Player 1 (${Math.round(v1*100)}%)`;
+        crossfaderStatus.innerText = fileAudioToggle.checked ? `Deck Audio File Player 1 (${Math.round(v1*100)}%)` : `Folder Audio Player (${Math.round(v1*100)}%)`;
         crossfaderStatus.style.color = "#ff007f";
       } else {
         crossfaderStatus.innerText = `Deck Audio File Player 2 (${Math.round(v2*100)}%)`;
