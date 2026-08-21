@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Full Display DJ Console</title>
+  <title>DJ Console</title>
   <!-- Font Awesome CDN for Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -970,10 +970,11 @@
       if (!fileAudioToggle.checked) {
         folderAudioFiles = Array.from(this.files).filter(f => f.type.startsWith('audio/') || /\.(mp3|wav|ogg|m4a|flac)$/i.test(f.name));
         
-        if (folderAudioFiles.length > 0) {
+if (folderAudioFiles.length > 0) {
           currentFolderIndex = 0; 
           renderFolderPlaylistUI();
           playSelectedTrack(0);
+          updateCrossfader(); // Ekhane add kore dite hobe
 
           file1.style.display = 'none';
           resetDeck1Btn.style.display = 'block';
@@ -1327,7 +1328,7 @@
       });
     });
 
-    function updateCrossfader() {
+   function updateCrossfader() {
       const val = parseFloat(crossfader.value);
       const v1 = Math.cos((val / 100) * (Math.PI / 2));
       const v2 = Math.sin((val / 100) * (Math.PI / 2));
@@ -1340,6 +1341,7 @@
       if (fileAudioToggle.checked) {
         volVal1.innerText = Math.round(v1 * 100) + '%';
       } else {
+        // Ekhane folderAudioFiles.length-er sathe total song count dekhanor system kora holo
         volVal1.innerText = `Files: ${folderAudioFiles.length}`;
       }
       volVal2.innerText = Math.round(v2 * 100) + '%';
@@ -1355,8 +1357,6 @@
         crossfaderStatus.style.color = "#00bfff";
       }
     }
-
-    crossfader.addEventListener('input', updateCrossfader);
 
     function checkSliderChanges(channel) {
       const sliders = channel === 'left' ? leftSliders : rightSliders;
