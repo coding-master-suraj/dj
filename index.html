@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -23,7 +23,7 @@
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       background: #08090e; display: flex; flex-direction: column;
       justify-content: center; align-items: center; z-index: 10000;
-      transition: opacity 0.5s ease;
+      transition: opacity 0.3s ease;
     }
     .power-btn-main {
       width: 90px; height: 90px; border-radius: 50%;
@@ -31,7 +31,7 @@
       color: #00ffcc; font-size: 2.2rem; cursor: pointer;
       box-shadow: 0 0 25px rgba(0,255,204,0.4);
       display: flex; justify-content: center; align-items: center;
-      transition: all 0.3s ease;
+      transition: transform 0.2s ease, background 0.2s ease;
     }
     .power-btn-main:hover {
       transform: scale(1.1);
@@ -68,24 +68,24 @@
     }
     
     @keyframes titlePowerOn {
-      0% { opacity: 0; transform: scale(0.3); filter: blur(10px); }
-      30% { opacity: 1; transform: scale(1.1); filter: blur(0px); }
-      70% { opacity: 1; transform: scale(1); filter: blur(0px); }
-      100% { opacity: 0; transform: scale(1.2); filter: blur(5px); }
+      0% { opacity: 0; transform: scale(0.3); }
+      30% { opacity: 1; transform: scale(1.1); }
+      70% { opacity: 1; transform: scale(1); }
+      100% { opacity: 0; transform: scale(1.2); }
     }
     @keyframes titlePowerOff {
-      0% { opacity: 1; transform: scale(1); filter: blur(0px); }
+      0% { opacity: 1; transform: scale(1); }
       50% { opacity: 0.8; transform: scale(1.1); }
-      100% { opacity: 0; transform: scale(0.1); filter: blur(15px); }
+      100% { opacity: 0; transform: scale(0.1); }
     }
 
-    .play-power-on { animation: titlePowerOn 3s forwards ease-in-out; }
-    .play-power-off { animation: titlePowerOff 3s forwards ease-in-out; }
+    .play-power-on { animation: titlePowerOn 2s forwards ease-in-out; }
+    .play-power-off { animation: titlePowerOff 2s forwards ease-in-out; }
 
     /* Lock Screen Modal */
     #lockScreen {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      background: rgba(8, 9, 14, 0.96); backdrop-filter: blur(15px);
+      background: rgba(8, 9, 14, 0.96); backdrop-filter: blur(10px);
       display: none; justify-content: center; align-items: center;
       z-index: 9998; flex-direction: column; gap: 15px;
     }
@@ -93,14 +93,12 @@
       background: #151824; border: 1px solid #00ffcc; padding: 25px;
       border-radius: 12px; text-align: center; box-shadow: 0 0 20px rgba(0,255,204,0.2);
       max-width: 320px; width: 90%;
-      transition: all 0.3s ease;
     }
     .lock-box h2 { color: #00ffcc; font-size: 1.2rem; margin-bottom: 12px; }
     .lock-box input {
       width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #282d42;
       background: #0a0c13; color: #fff; text-align: center; font-size: 1.1rem;
       outline: none; margin-bottom: 12px;
-      transition: all 0.3s ease;
     }
     .lock-box input:disabled {
       background: #1a1f2e; color: #00ffcc; border-color: #00ffcc; cursor: not-allowed; opacity: 0.8;
@@ -108,14 +106,14 @@
     .lock-box button {
       width: 100%; padding: 10px; border-radius: 6px; border: none;
       background: #00ffcc; color: #08090e; font-weight: bold; cursor: pointer;
-      font-size: 0.9rem; transition: all 0.3s ease;
+      font-size: 0.9rem;
     }
     .lock-box button:disabled { background: #282d42; color: #8f9bb3; cursor: not-allowed; }
     #lockError { color: #ff007f; font-size: 0.75rem; min-height: 15px; margin-top: 8px; }
 
     @keyframes verifyingPulse {
       0% { box-shadow: 0 0 10px rgba(0,255,204,0.3); border-color: #00ffcc; }
-      50% { box-shadow: 0 0 30px rgba(0,255,204,0.9); border-color: #00ffcc; transform: scale(1.02); }
+      50% { box-shadow: 0 0 25px rgba(0,255,204,0.8); border-color: #00ffcc; }
       100% { box-shadow: 0 0 10px rgba(0,255,204,0.3); border-color: #00ffcc; }
     }
     @keyframes shakeError {
@@ -124,8 +122,8 @@
       40%, 80% { transform: translateX(10px); }
     }
 
-    .verifying-anim { animation: verifyingPulse 1s infinite ease-in-out; }
-    .shake-anim { animation: shakeError 0.4s ease-in-out; border-color: #ff007f !important; }
+    .verifying-anim { animation: verifyingPulse 0.8s infinite ease-in-out; }
+    .shake-anim { animation: shakeError 0.3s ease-in-out; border-color: #ff007f !important; }
 
     /* App Layout */
     .app-container {
@@ -149,18 +147,18 @@
     .btn-power-off-top {
       width: 32px; height: 32px; border-radius: 50%; background: #151824;
       border: 1px solid #ff0055; color: #ff0055; font-size: 0.95rem; cursor: pointer;
-      display: flex; justify-content: center; align-items: center; transition: all 0.2s ease;
+      display: flex; justify-content: center; align-items: center;
       box-shadow: 0 0 6px rgba(255, 0, 85, 0.3);
     }
-    .btn-power-off-top:hover { background: #ff0055; color: #fff; box-shadow: 0 0 10px #ff0055; }
+    .btn-power-off-top:hover { background: #ff0055; color: #fff; }
 
     .btn-lock-top {
       width: 32px; height: 32px; border-radius: 50%; background: #151824;
       border: 1px solid #00ffcc; color: #00ffcc; font-size: 0.95rem; cursor: pointer;
-      display: flex; justify-content: center; align-items: center; transition: all 0.2s ease;
+      display: flex; justify-content: center; align-items: center;
       box-shadow: 0 0 6px rgba(0, 255, 204, 0.3);
     }
-    .btn-lock-top:hover { background: #00ffcc; color: #08090e; box-shadow: 0 0 10px #00ffcc; }
+    .btn-lock-top:hover { background: #00ffcc; color: #08090e; }
 
     h1 { color: #00ffcc; text-shadow: 0 0 10px rgba(0, 255, 204, 0.5); font-size: clamp(0.9rem, 2vw, 1.2rem); text-transform: uppercase; }
     
@@ -169,9 +167,9 @@
     .btn-capture {
       background: #00ffcc; color: #0a0c13; border: none; padding: 6px 12px;
       border-radius: 4px; font-size: 0.75rem; font-weight: bold; cursor: pointer;
-      box-shadow: 0 0 8px rgba(0, 255, 204, 0.4); transition: all 0.3s ease; display: none;
+      box-shadow: 0 0 8px rgba(0, 255, 204, 0.4); display: none;
     }
-    .btn-capture.active { background: #ff0055; color: #ffffff; box-shadow: 0 0 8px rgba(255, 0, 85, 0.6); }
+    .btn-capture.active { background: #ff0055; color: #ffffff; }
     
     .btn-fullscreen {
       background: #1e2436; color: #00ffcc; border: 1px solid #00ffcc; padding: 5px 10px;
@@ -179,14 +177,12 @@
     }
     .btn-fullscreen:hover { background: #00ffcc; color: #08090e; }
 
-    /* Echo Control Group with Checkbox Box */
+    /* Echo Control Group */
     .echo-control-group {
       display: flex; gap: 6px; align-items: center; background: #151824; padding: 4px 8px; border-radius: 6px; border: 1px solid #282d42;
     }
     .echo-label { font-size: 0.65rem; color: #ffcc00; font-weight: bold; display: flex; align-items: center; gap: 4px; cursor: pointer; }
-    .echo-checkbox {
-      width: 14px; height: 14px; accent-color: #ffcc00; cursor: pointer;
-    }
+    .echo-checkbox { width: 14px; height: 14px; accent-color: #ffcc00; cursor: pointer; }
     .echo-val-display { font-size: 0.65rem; color: #00ffcc; font-weight: bold; min-width: 30px; text-align: right; }
     
     input[type="range"].echo-slider {
@@ -212,11 +208,11 @@
     .switch input { opacity: 0; width: 0; height: 0; }
     .slider {
       position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
-      background-color: #444; transition: .3s; border-radius: 20px; border: 1px solid #888;
+      background-color: #444; transition: .2s; border-radius: 20px; border: 1px solid #888;
     }
     .slider:before {
       position: absolute; content: ""; height: 14px; width: 14px; left: 2px; bottom: 2px;
-      background-color: white; transition: .3s; border-radius: 50%;
+      background-color: white; transition: .2s; border-radius: 50%;
     }
     input:checked + .slider { background-color: #00ffcc; border-color: #00ffcc; }
     input:checked + .slider:before { transform: translateX(18px); background-color: #0a0c13; }
@@ -228,7 +224,6 @@
       background: #000000; border-radius: 10px; overflow: hidden;
       flex-shrink: 0; padding: 2px; border: 1px solid #1a2233;
       box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.9), 0 0 15px rgba(0, 255, 204, 0.1);
-      transition: all 0.4s ease;
     }
 
     canvas { width: 100%; height: 100%; display: block; }
@@ -238,12 +233,11 @@
       display: flex; flex-direction: column; gap: 8px; flex: 1; min-height: 0;
     }
 
-    .players-wrapper { display: flex; gap: 10px; width: 100%; flex: 1; min-height: 0; transition: all 0.4s ease; }
+    .players-wrapper { display: flex; gap: 10px; width: 100%; flex: 1; min-height: 0; }
     .player-card {
-      flex: 1; background: rgba(21, 24, 36, 0.8); backdrop-filter: blur(8px);
+      flex: 1; background: rgba(21, 24, 36, 0.8); backdrop-filter: blur(5px);
       padding: 8px 12px; border-radius: 10px; border: 1px solid #282d42;
       display: flex; flex-direction: column; justify-content: center; gap: 6px; min-width: 0;
-      transition: all 0.3s ease;
     }
     .player-card.p1 h3 { color: #ff007f; font-size: clamp(0.85rem, 1.8vw, 1.1rem); display: flex; justify-content: space-between; }
     .player-card.p2 h3 { color: #00bfff; font-size: clamp(0.85rem, 1.8vw, 1.1rem); display: flex; justify-content: space-between; }
@@ -284,7 +278,6 @@
     .folder-playlist-container {
       flex: 1; background: #0a0c13; border: 1px solid #282d42;
       border-radius: 4px; max-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; padding: 2px;
-      scroll-behavior: smooth;
     }
     .playlist-item {
       display: flex; align-items: center; justify-content: space-between; background: #131722;
@@ -296,7 +289,7 @@
 
     .crossfader-card {
       background: rgba(21, 24, 36, 0.85); padding: 6px 14px; border-radius: 10px;
-      border: 1px solid #282d42; text-align: center; flex-shrink: 0; transition: all 0.4s ease;
+      border: 1px solid #282d42; text-align: center; flex-shrink: 0;
     }
     .crossfader-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; }
     .crossfader-header h3 { font-size: clamp(0.8rem, 1.3vw, 0.95rem); color: #00ffcc; }
@@ -318,9 +311,8 @@
     .eq-container {
       background: rgba(21, 24, 36, 0.85); padding: 8px 10px; border-radius: 10px;
       border: 1px solid #282d42; flex-shrink: 0; height: 38vh; display: flex; flex-direction: column; gap: 8px;
-      transition: all 0.4s ease;
     }
-    .eq-channel { flex: 1; display: flex; flex-direction: column; min-height: 0; transition: all 0.3s ease; }
+    .eq-channel { flex: 1; display: flex; flex-direction: column; min-height: 0; }
     .eq-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px; }
     .eq-header h2 { color: #00ffcc; font-size: clamp(0.7rem, 1.1vw, 0.8rem); text-transform: uppercase; }
     .eq-header h2.left-title { color: #ff007f; }
@@ -374,7 +366,7 @@
       width: 100%; height: 100%;
       border-radius: 50%;
       pointer-events: none;
-      animation: rgbRotate 2s linear infinite;
+      animation: rgbRotate 3s linear infinite;
       box-shadow: 0 0 25px rgba(0, 255, 204, 0.2);
     }
 
@@ -400,11 +392,10 @@
       color: #00ffcc; font-size: 2.2rem; cursor: pointer;
       display: flex; justify-content: center; align-items: center;
       box-shadow: 0 0 20px rgba(0, 255, 204, 0.5);
-      z-index: 2; transition: all 0.3s ease;
+      z-index: 2;
     }
     .btn-large-unlock:hover {
-      background: #00ffcc; color: #08090e; transform: scale(1.08);
-      box-shadow: 0 0 35px rgba(0, 255, 204, 0.9);
+      background: #00ffcc; color: #08090e; transform: scale(1.05);
     }
     .unlock-hint-text {
       font-size: 0.75rem; color: #00ffcc; font-weight: bold; letter-spacing: 1px;
@@ -469,7 +460,7 @@
         <button class="btn-capture" id="tabAudioBtn" onclick="toggleTabAudio()">🎵 Link Chrome Tab</button>
         <button class="btn-fullscreen" id="fullscreenBtn" onclick="toggleFullscreen()">⛶ Fullscreen</button>
         
-        <!-- Echo Control Group with Checkbox Box -->
+        <!-- Echo Control Group -->
         <div class="echo-control-group">
           <label class="echo-label" for="echoCheckbox">
             <input type="checkbox" id="echoCheckbox" class="echo-checkbox" onchange="toggleEchoCheckbox(this)"> ECHO:
@@ -559,7 +550,7 @@
       <div class="crossfader-card" id="crossfaderCard">
         <div class="crossfader-header">
           <h3>Crossfader</h3>
-          <span id="crossfaderStatus" style="font-size:0.75rem; color:#00ffcc;">Center</span>
+          <span id="crossfaderStatus" style="font-size:0.75rem; color:#00ffcc;">Center (50/50)</span>
         </div>
         <div class="fader-labels">
           <span class="p1-lbl">◀ Deck Audio File Player 1</span>
@@ -623,24 +614,24 @@
         if (type === 'on') {
           osc.type = 'sine';
           osc.frequency.setValueAtTime(150, now);
-          osc.frequency.exponentialRampToValueAtTime(880, now + 2.5);
+          osc.frequency.exponentialRampToValueAtTime(880, now + 1.2);
 
           gain.gain.setValueAtTime(0, now);
-          gain.gain.linearRampToValueAtTime(0.3, now + 0.3);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + 2.9);
+          gain.gain.linearRampToValueAtTime(0.2, now + 0.1);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 1.3);
 
           osc.start(now);
-          osc.stop(now + 3.0);
+          osc.stop(now + 1.4);
         } else if (type === 'off') {
           osc.type = 'sawtooth';
           osc.frequency.setValueAtTime(600, now);
-          osc.frequency.exponentialRampToValueAtTime(40, now + 2.5);
+          osc.frequency.exponentialRampToValueAtTime(40, now + 1.2);
 
-          gain.gain.setValueAtTime(0.3, now);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + 2.9);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 1.3);
 
           osc.start(now);
-          osc.stop(now + 3.0);
+          osc.stop(now + 1.4);
         }
       } catch (e) {
         console.error("Audio Sound Effect Error:", e);
@@ -679,7 +670,7 @@
         unlockBtn.disabled = false;
         lockBox.classList.remove('verifying-anim', 'shake-anim');
         passInput.focus();
-      }, 3000);
+      }, 2000);
     }
 
     function powerOffSystem() {
@@ -711,7 +702,7 @@
         currentPassword = "";
         document.getElementById('passInput').value = "";
         document.getElementById('lockError').innerText = "";
-      }, 3000);
+      }, 2000);
     }
 
     function clearLockError() {
@@ -830,14 +821,13 @@
     const eqContainerLeft = document.getElementById('eqSlidersLeft');
     const eqContainerRight = document.getElementById('eqSlidersRight');
     const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { alpha: false }); // Optimised context
     
     const tabAudioToggle = document.getElementById('tabAudioToggle');
     const fileAudioToggle = document.getElementById('fileAudioToggle');
     const stereoToggle = document.getElementById('stereoToggle');
     const tabAudioBtn = document.getElementById('tabAudioBtn');
 
-    const deck1Card = document.getElementById('deck1Card');
     const deck2Card = document.getElementById('deck2Card');
     const crossfaderCard = document.getElementById('crossfaderCard');
     const rightEqChannel = document.getElementById('rightEqChannel');
@@ -944,7 +934,6 @@
       resetDeck(1);
       resetDeck(2);
       
-      // ক্রসফডার এবং ডেকের ভলিউম পুরোপুরি রিফ্রেশ করার জন্য স্লাইডার মিডল পজিশনে সেট করা হলো
       crossfader.value = 50;
       updateCrossfader();
     });
@@ -970,11 +959,11 @@
       if (!fileAudioToggle.checked) {
         folderAudioFiles = Array.from(this.files).filter(f => f.type.startsWith('audio/') || /\.(mp3|wav|ogg|m4a|flac)$/i.test(f.name));
         
-if (folderAudioFiles.length > 0) {
+        if (folderAudioFiles.length > 0) {
           currentFolderIndex = 0; 
           renderFolderPlaylistUI();
           playSelectedTrack(0);
-          updateCrossfader(); // Ekhane add kore dite hobe
+          updateCrossfader();
 
           file1.style.display = 'none';
           resetDeck1Btn.style.display = 'block';
@@ -1176,11 +1165,7 @@ if (folderAudioFiles.length > 0) {
       try {
         const constraints = {
           video: true,
-          audio: {
-            echoCancellation: true,
-            noiseSuppression: true,
-            autoGainControl: true
-          }
+          audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
         };
 
         tabStream = await navigator.mediaDevices.getDisplayMedia(constraints);
@@ -1201,17 +1186,13 @@ if (folderAudioFiles.length > 0) {
         }
         
         tabGainNode.gain.value = 1;
-        
         tabSource.connect(tabGainNode);
         tabGainNode.connect(mainMixGain);
 
         tabAudioBtn.innerText = "❌ Cancel Tab Audio";
         tabAudioBtn.classList.add('active');
 
-        audioTrack.onended = () => {
-          cancelTabAudio();
-        };
-
+        audioTrack.onended = () => { cancelTabAudio(); };
       } catch (err) {
         console.error("Tab Capture Failed: ", err);
         cancelTabAudio();
@@ -1227,7 +1208,6 @@ if (folderAudioFiles.length > 0) {
         try { tabSource.disconnect(); } catch (e) {}
         tabSource = null;
       }
-
       tabAudioBtn.innerText = "🎵 Link Chrome Tab";
       tabAudioBtn.classList.remove('active');
     }
@@ -1299,7 +1279,7 @@ if (folderAudioFiles.length > 0) {
       filtersRight[filtersRight.length - 1].connect(merger, 0, 1);
 
       analyser = audioCtx.createAnalyser();
-      analyser.fftSize = 128;
+      analyser.fftSize = 64; // Performance Boost: Reduced FFT size to prevent rendering lag
 
       merger.connect(analyser);
       analyser.connect(audioCtx.destination);
@@ -1328,7 +1308,9 @@ if (folderAudioFiles.length > 0) {
       });
     });
 
-   function updateCrossfader() {
+    crossfader.addEventListener('input', updateCrossfader);
+
+    function updateCrossfader() {
       const val = parseFloat(crossfader.value);
       const v1 = Math.cos((val / 100) * (Math.PI / 2));
       const v2 = Math.sin((val / 100) * (Math.PI / 2));
@@ -1341,8 +1323,7 @@ if (folderAudioFiles.length > 0) {
       if (fileAudioToggle.checked) {
         volVal1.innerText = Math.round(v1 * 100) + '%';
       } else {
-        // Ekhane folderAudioFiles.length-er sathe total song count dekhanor system kora holo
-        volVal1.innerText = `Files: ${folderAudioFiles.length}`;
+        volVal1.innerText = `Songs: ${folderAudioFiles.length}`;
       }
       volVal2.innerText = Math.round(v2 * 100) + '%';
 
@@ -1350,10 +1331,10 @@ if (folderAudioFiles.length > 0) {
         crossfaderStatus.innerText = "Center (50/50)";
         crossfaderStatus.style.color = "#00ffcc";
       } else if (val < 50) {
-        crossfaderStatus.innerText = fileAudioToggle.checked ? `Deck Audio File Player 1 (${Math.round(v1*100)}%)` : `Folder Audio Player (${Math.round(v1*100)}%)`;
+        crossfaderStatus.innerText = fileAudioToggle.checked ? `Deck 1 (${Math.round(v1*100)}%)` : `Folder Player (${Math.round(v1*100)}%)`;
         crossfaderStatus.style.color = "#ff007f";
       } else {
-        crossfaderStatus.innerText = `Deck Audio File Player 2 (${Math.round(v2*100)}%)`;
+        crossfaderStatus.innerText = `Deck 2 (${Math.round(v2*100)}%)`;
         crossfaderStatus.style.color = "#00bfff";
       }
     }
@@ -1548,11 +1529,11 @@ if (folderAudioFiles.length > 0) {
 
       const totalHeight = canvas.height;
       const baselineY = totalHeight * 0.58;
-      const numBars = 36;
-      const barSpacing = 2;
+      const numBars = 24; // Performance Boost: Reduced bar counts for super fast rendering
+      const barSpacing = 3;
       const barWidth = (canvas.width - (numBars * barSpacing)) / numBars;
 
-      const maxBlocks = 14;
+      const maxBlocks = 12;
       const blockHeight = 2.5;
       const blockGap = 1.2;
 
@@ -1572,10 +1553,7 @@ if (folderAudioFiles.length > 0) {
       ctx.lineTo(canvas.width, baselineY);
       ctx.strokeStyle = '#00aaff';
       ctx.lineWidth = 1.5;
-      ctx.shadowColor = '#00aaff';
-      ctx.shadowBlur = 8;
       ctx.stroke();
-      ctx.shadowBlur = 0;
 
       for (let i = 0; i < numBars; i++) {
         const dataIndex = Math.floor((i / numBars) * bufferLength);
@@ -1586,7 +1564,7 @@ if (folderAudioFiles.length > 0) {
         if (activeBlocks >= peakCaps[i]) {
           peakCaps[i] = activeBlocks;
         } else {
-          peakCaps[i] -= 0.15;
+          peakCaps[i] -= 0.2;
           if (peakCaps[i] < 0) peakCaps[i] = 0;
         }
 
@@ -1596,53 +1574,20 @@ if (folderAudioFiles.length > 0) {
 
         for (let b = 0; b < maxBlocks; b++) {
           const y = baselineY - (b + 1) * (blockHeight + blockGap);
-
           if (b < activeBlocks) {
             ctx.fillStyle = blockColor;
-          } else {
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
+            ctx.fillRect(x, y, barWidth, blockHeight);
           }
-          ctx.fillRect(x, y, barWidth, blockHeight);
-        }
-
-        const peakBlockIndex = Math.floor(peakCaps[i]);
-        if (peakBlockIndex > 0) {
-          const peakY = baselineY - (peakBlockIndex + 1) * (blockHeight + blockGap);
-          ctx.fillStyle = blockColor;
-          ctx.fillRect(x, peakY, barWidth, blockHeight);
-        }
-
-        for (let b = 0; b < activeBlocks; b++) {
-          const yReflect = baselineY + b * (blockHeight + blockGap) + 3;
-          const alpha = Math.max(0, 0.35 - (b / maxBlocks) * 0.32);
-          
-          ctx.fillStyle = `hsla(${hue % 360}, 100%, 55%, ${alpha})`;
-          ctx.fillRect(x, yReflect, barWidth, blockHeight);
         }
       }
     }
 
     renderVisualizer();
 
-    document.addEventListener('contextmenu', function (e) {
-      e.preventDefault();
-    });
-
-    document.addEventListener('selectstart', function (e) {
-      e.preventDefault();
-    });
-
-    document.addEventListener('keydown', function (e) {
-      if (e.ctrlKey && ['c', 'a', 'u', 's', 'C', 'A', 'U', 'S'].includes(e.key)) {
-        e.preventDefault();
-      }
-    });
-
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'F12') {
-        e.preventDefault();
-      }
-      if (e.ctrlKey && e.shiftKey && ['i', 'j', 'c', 'I', 'J', 'C'].includes(e.key)) {
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('selectstart', e => e.preventDefault());
+    document.addEventListener('keydown', e => {
+      if (e.key === 'F12' || (e.ctrlKey && ['c', 'a', 'u', 's', 'i', 'j'].includes(e.key.toLowerCase()))) {
         e.preventDefault();
       }
     });
