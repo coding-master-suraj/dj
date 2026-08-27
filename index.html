@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -23,19 +23,19 @@
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       background: #08090e; display: flex; flex-direction: column;
       justify-content: center; align-items: center; z-index: 10000;
-      transition: opacity 0.3s ease;
+      transition: opacity 0.5s ease;
     }
     .power-btn-main {
       width: 90px; height: 90px; border-radius: 50%;
       background: #151824; border: 2px solid #00ffcc;
       color: #00ffcc; font-size: 2.2rem; cursor: pointer;
-      box-shadow: 0 0 25px rgba(0,255,204,0.4);
+      box-shadow: 0 0 25px rgba(0,255,204,0.4), inset 0 0 10px rgba(0,255,204,0.3);
       display: flex; justify-content: center; align-items: center;
-      transition: transform 0.2s ease, background 0.2s ease;
+      transition: all 0.3s ease;
     }
     .power-btn-main:hover {
       transform: scale(1.1);
-      box-shadow: 0 0 40px rgba(0,255,204,0.8);
+      box-shadow: 0 0 40px rgba(0,255,204,0.8), inset 0 0 20px rgba(0,255,204,0.6);
       background: #00ffcc; color: #08090e;
     }
     .power-text-hint { margin-top: 15px; font-size: 0.85rem; color: #8f9bb3; letter-spacing: 1px; }
@@ -68,37 +68,39 @@
     }
     
     @keyframes titlePowerOn {
-      0% { opacity: 0; transform: scale(0.3); }
-      30% { opacity: 1; transform: scale(1.1); }
-      70% { opacity: 1; transform: scale(1); }
-      100% { opacity: 0; transform: scale(1.2); }
+      0% { opacity: 0; transform: scale(0.3); filter: blur(10px); }
+      30% { opacity: 1; transform: scale(1.1); filter: blur(0px); }
+      70% { opacity: 1; transform: scale(1); filter: blur(0px); }
+      100% { opacity: 0; transform: scale(1.2); filter: blur(5px); }
     }
     @keyframes titlePowerOff {
-      0% { opacity: 1; transform: scale(1); }
+      0% { opacity: 1; transform: scale(1); filter: blur(0px); }
       50% { opacity: 0.8; transform: scale(1.1); }
-      100% { opacity: 0; transform: scale(0.1); }
+      100% { opacity: 0; transform: scale(0.1); filter: blur(15px); }
     }
 
-    .play-power-on { animation: titlePowerOn 2s forwards ease-in-out; }
-    .play-power-off { animation: titlePowerOff 2s forwards ease-in-out; }
+    .play-power-on { animation: titlePowerOn 3s forwards ease-in-out; }
+    .play-power-off { animation: titlePowerOff 3s forwards ease-in-out; }
 
     /* Lock Screen Modal */
     #lockScreen {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      background: rgba(8, 9, 14, 0.96); backdrop-filter: blur(10px);
+      background: rgba(8, 9, 14, 0.96); backdrop-filter: blur(15px);
       display: none; justify-content: center; align-items: center;
       z-index: 9998; flex-direction: column; gap: 15px;
     }
     .lock-box {
       background: #151824; border: 1px solid #00ffcc; padding: 25px;
-      border-radius: 12px; text-align: center; box-shadow: 0 0 20px rgba(0,255,204,0.2);
+      border-radius: 12px; text-align: center; box-shadow: 0 0 25px rgba(0,255,204,0.3);
       max-width: 320px; width: 90%;
+      transition: all 0.3s ease;
     }
-    .lock-box h2 { color: #00ffcc; font-size: 1.2rem; margin-bottom: 12px; }
+    .lock-box h2 { color: #00ffcc; font-size: 1.2rem; margin-bottom: 12px; text-shadow: 0 0 8px rgba(0,255,204,0.4); }
     .lock-box input {
       width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #282d42;
       background: #0a0c13; color: #fff; text-align: center; font-size: 1.1rem;
-      outline: none; margin-bottom: 12px;
+      outline: none; margin-bottom: 12px; box-shadow: inset 0 0 8px rgba(0,0,0,0.5);
+      transition: all 0.3s ease;
     }
     .lock-box input:disabled {
       background: #1a1f2e; color: #00ffcc; border-color: #00ffcc; cursor: not-allowed; opacity: 0.8;
@@ -106,14 +108,14 @@
     .lock-box button {
       width: 100%; padding: 10px; border-radius: 6px; border: none;
       background: #00ffcc; color: #08090e; font-weight: bold; cursor: pointer;
-      font-size: 0.9rem;
+      font-size: 0.9rem; box-shadow: 0 0 10px rgba(0,255,204,0.4); transition: all 0.3s ease;
     }
-    .lock-box button:disabled { background: #282d42; color: #8f9bb3; cursor: not-allowed; }
-    #lockError { color: #ff007f; font-size: 0.75rem; min-height: 15px; margin-top: 8px; }
+    .lock-box button:disabled { background: #282d42; color: #8f9bb3; cursor: not-allowed; box-shadow: none; }
+    #lockError { color: #ff007f; font-size: 0.75rem; min-height: 15px; margin-top: 8px; text-shadow: 0 0 5px rgba(255,0,127,0.5); }
 
     @keyframes verifyingPulse {
       0% { box-shadow: 0 0 10px rgba(0,255,204,0.3); border-color: #00ffcc; }
-      50% { box-shadow: 0 0 25px rgba(0,255,204,0.8); border-color: #00ffcc; }
+      50% { box-shadow: 0 0 35px rgba(0,255,204,0.9); border-color: #00ffcc; transform: scale(1.02); }
       100% { box-shadow: 0 0 10px rgba(0,255,204,0.3); border-color: #00ffcc; }
     }
     @keyframes shakeError {
@@ -122,8 +124,8 @@
       40%, 80% { transform: translateX(10px); }
     }
 
-    .verifying-anim { animation: verifyingPulse 0.8s infinite ease-in-out; }
-    .shake-anim { animation: shakeError 0.3s ease-in-out; border-color: #ff007f !important; }
+    .verifying-anim { animation: verifyingPulse 1s infinite ease-in-out; }
+    .shake-anim { animation: shakeError 0.4s ease-in-out; border-color: #ff007f !important; }
 
     /* App Layout */
     .app-container {
@@ -147,42 +149,46 @@
     .btn-power-off-top {
       width: 32px; height: 32px; border-radius: 50%; background: #151824;
       border: 1px solid #ff0055; color: #ff0055; font-size: 0.95rem; cursor: pointer;
-      display: flex; justify-content: center; align-items: center;
-      box-shadow: 0 0 6px rgba(255, 0, 85, 0.3);
+      display: flex; justify-content: center; align-items: center; transition: all 0.2s ease;
+      box-shadow: 0 0 8px rgba(255, 0, 85, 0.4);
     }
-    .btn-power-off-top:hover { background: #ff0055; color: #fff; }
+    .btn-power-off-top:hover { background: #ff0055; color: #fff; box-shadow: 0 0 15px #ff0055; }
 
     .btn-lock-top {
       width: 32px; height: 32px; border-radius: 50%; background: #151824;
       border: 1px solid #00ffcc; color: #00ffcc; font-size: 0.95rem; cursor: pointer;
-      display: flex; justify-content: center; align-items: center;
-      box-shadow: 0 0 6px rgba(0, 255, 204, 0.3);
+      display: flex; justify-content: center; align-items: center; transition: all 0.2s ease;
+      box-shadow: 0 0 8px rgba(0, 255, 204, 0.4);
     }
-    .btn-lock-top:hover { background: #00ffcc; color: #08090e; }
+    .btn-lock-top:hover { background: #00ffcc; color: #08090e; box-shadow: 0 0 15px #00ffcc; }
 
-    h1 { color: #00ffcc; text-shadow: 0 0 10px rgba(0, 255, 204, 0.5); font-size: clamp(0.9rem, 2vw, 1.2rem); text-transform: uppercase; }
+    h1 { color: #00ffcc; text-shadow: 0 0 12px rgba(0, 255, 204, 0.6); font-size: clamp(0.9rem, 2vw, 1.2rem); text-transform: uppercase; }
     
     .top-bar-btns { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 
     .btn-capture {
       background: #00ffcc; color: #0a0c13; border: none; padding: 6px 12px;
       border-radius: 4px; font-size: 0.75rem; font-weight: bold; cursor: pointer;
-      box-shadow: 0 0 8px rgba(0, 255, 204, 0.4); display: none;
+      box-shadow: 0 0 10px rgba(0, 255, 204, 0.5); transition: all 0.3s ease; display: none;
     }
-    .btn-capture.active { background: #ff0055; color: #ffffff; }
+    .btn-capture.active { background: #ff0055; color: #ffffff; box-shadow: 0 0 10px rgba(255, 0, 85, 0.7); }
     
     .btn-fullscreen {
       background: #1e2436; color: #00ffcc; border: 1px solid #00ffcc; padding: 5px 10px;
       border-radius: 4px; font-size: 0.75rem; font-weight: bold; cursor: pointer;
+      box-shadow: 0 0 6px rgba(0,255,204,0.2); transition: all 0.2s ease;
     }
-    .btn-fullscreen:hover { background: #00ffcc; color: #08090e; }
+    .btn-fullscreen:hover { background: #00ffcc; color: #08090e; box-shadow: 0 0 12px rgba(0,255,204,0.5); }
 
-    /* Echo Control Group */
+    /* Echo Control Group with Checkbox Box */
     .echo-control-group {
       display: flex; gap: 6px; align-items: center; background: #151824; padding: 4px 8px; border-radius: 6px; border: 1px solid #282d42;
+      box-shadow: 0 0 8px rgba(0,0,0,0.4);
     }
-    .echo-label { font-size: 0.65rem; color: #ffcc00; font-weight: bold; display: flex; align-items: center; gap: 4px; cursor: pointer; }
-    .echo-checkbox { width: 14px; height: 14px; accent-color: #ffcc00; cursor: pointer; }
+    .echo-label { font-size: 0.65rem; color: #ffcc00; font-weight: bold; display: flex; align-items: center; gap: 4px; cursor: pointer; text-shadow: 0 0 5px rgba(255,204,0,0.4); }
+    .echo-checkbox {
+      width: 14px; height: 14px; accent-color: #ffcc00; cursor: pointer;
+    }
     .echo-val-display { font-size: 0.65rem; color: #00ffcc; font-weight: bold; min-width: 30px; text-align: right; }
     
     input[type="range"].echo-slider {
@@ -191,30 +197,30 @@
     }
     input[type="range"].echo-slider::-webkit-slider-thumb {
       -webkit-appearance: none; width: 12px; height: 14px; border-radius: 3px;
-      background: #ffcc00; border: 1px solid #ffffff; cursor: pointer;
+      background: #ffcc00; border: 1px solid #ffffff; cursor: pointer; box-shadow: 0 0 6px #ffcc00;
     }
 
     .switches-wrapper { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
     .source-switch-box {
       display: flex; align-items: center; gap: 6px;
       background: rgba(255, 204, 0, 0.08); border: 1px solid #ffcc00;
-      padding: 4px 8px; border-radius: 20px;
+      padding: 4px 8px; border-radius: 20px; box-shadow: 0 0 8px rgba(255, 204, 0, 0.15);
     }
-    .source-switch-box.stereo-box { background: rgba(0, 255, 204, 0.08); border-color: #00ffcc; }
-    .source-switch-box label.title { font-size: 0.65rem; color: #ffcc00; font-weight: bold; }
-    .source-switch-box.stereo-box label.title { color: #00ffcc; }
+    .source-switch-box.stereo-box { background: rgba(0, 255, 204, 0.08); border-color: #00ffcc; box-shadow: 0 0 8px rgba(0, 255, 204, 0.15); }
+    .source-switch-box label.title { font-size: 0.65rem; color: #ffcc00; font-weight: bold; text-shadow: 0 0 5px rgba(255,204,0,0.4); }
+    .source-switch-box.stereo-box label.title { color: #00ffcc; text-shadow: 0 0 5px rgba(0,255,204,0.4); }
     
     .switch { position: relative; display: inline-block; width: 38px; height: 20px; }
     .switch input { opacity: 0; width: 0; height: 0; }
     .slider {
       position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
-      background-color: #444; transition: .2s; border-radius: 20px; border: 1px solid #888;
+      background-color: #444; transition: .3s; border-radius: 20px; border: 1px solid #888;
     }
     .slider:before {
       position: absolute; content: ""; height: 14px; width: 14px; left: 2px; bottom: 2px;
-      background-color: white; transition: .2s; border-radius: 50%;
+      background-color: white; transition: .3s; border-radius: 50%;
     }
-    input:checked + .slider { background-color: #00ffcc; border-color: #00ffcc; }
+    input:checked + .slider { background-color: #00ffcc; border-color: #00ffcc; box-shadow: 0 0 8px #00ffcc; }
     input:checked + .slider:before { transform: translateX(18px); background-color: #0a0c13; }
 
     /* Visualizer Container */
@@ -223,7 +229,9 @@
       width: 100%; height: 16vh; min-height: 90px;
       background: #000000; border-radius: 10px; overflow: hidden;
       flex-shrink: 0; padding: 2px; border: 1px solid #1a2233;
-      box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.9), 0 0 15px rgba(0, 255, 204, 0.1);
+      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.95), 0 0 20px rgba(0, 255, 204, 0.25);
+      transition: all 0.4s ease;
+      filter: drop-shadow(0 0 8px rgba(0, 255, 204, 0.3));
     }
 
     canvas { width: 100%; height: 100%; display: block; }
@@ -233,14 +241,19 @@
       display: flex; flex-direction: column; gap: 8px; flex: 1; min-height: 0;
     }
 
-    .players-wrapper { display: flex; gap: 10px; width: 100%; flex: 1; min-height: 0; }
+    .players-wrapper { display: flex; gap: 10px; width: 100%; flex: 1; min-height: 0; transition: all 0.4s ease; }
     .player-card {
-      flex: 1; background: rgba(21, 24, 36, 0.8); backdrop-filter: blur(5px);
+      flex: 1; background: rgba(21, 24, 36, 0.85); backdrop-filter: blur(8px);
       padding: 8px 12px; border-radius: 10px; border: 1px solid #282d42;
       display: flex; flex-direction: column; justify-content: center; gap: 6px; min-width: 0;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), inset 0 0 10px rgba(255, 255, 255, 0.02);
     }
-    .player-card.p1 h3 { color: #ff007f; font-size: clamp(0.85rem, 1.8vw, 1.1rem); display: flex; justify-content: space-between; }
-    .player-card.p2 h3 { color: #00bfff; font-size: clamp(0.85rem, 1.8vw, 1.1rem); display: flex; justify-content: space-between; }
+    .player-card.p1 { box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), 0 0 12px rgba(255, 0, 127, 0.15); border-color: rgba(255,0,127,0.3); }
+    .player-card.p2 { box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), 0 0 12px rgba(0, 191, 255, 0.15); border-color: rgba(0,191,255,0.3); }
+    
+    .player-card.p1 h3 { color: #ff007f; font-size: clamp(0.85rem, 1.8vw, 1.1rem); display: flex; justify-content: space-between; text-shadow: 0 0 6px rgba(255,0,127,0.4); }
+    .player-card.p2 h3 { color: #00bfff; font-size: clamp(0.85rem, 1.8vw, 1.1rem); display: flex; justify-content: space-between; text-shadow: 0 0 6px rgba(0,191,255,0.4); }
     
     .file-input-wrapper { position: relative; width: 100%; }
     
@@ -254,69 +267,76 @@
       content: 'Choose Folder'; display: inline-block; background: #1e2436;
       border: 1px solid #00ffcc; border-radius: 4px; padding: 2px 6px;
       outline: none; white-space: nowrap; cursor: pointer; color: #00ffcc;
-      font-weight: bold; font-size: 0.7rem; margin-right: 8px;
+      font-weight: bold; font-size: 0.7rem; margin-right: 8px; box-shadow: 0 0 6px rgba(0,255,204,0.3);
     }
 
-    audio { width: 100%; height: 28px; }
+    audio { width: 100%; height: 28px; filter: drop-shadow(0 0 4px rgba(0,255,204,0.2)); }
 
     .btn-reset-deck {
       display: none; width: 100%; background: #00ffcc; color: #08090e;
       border: none; padding: 6px; border-radius: 6px; font-size: 0.75rem;
       font-weight: bold; cursor: pointer; text-align: center;
-      box-shadow: 0 0 8px rgba(0, 255, 204, 0.4); margin-bottom: 2px;
+      box-shadow: 0 0 10px rgba(0, 255, 204, 0.4); margin-bottom: 2px;
+      transition: all 0.2s ease;
     }
-    .btn-reset-deck:hover { background: #00e6b8; }
+    .btn-reset-deck:hover { background: #00e6b8; box-shadow: 0 0 15px rgba(0, 255, 204, 0.7); }
 
     /* Custom Folder Playlist UI */
     .folder-controls { display: none; align-items: stretch; justify-content: space-between; gap: 6px; }
     .folder-nav-btn {
       background: #1e2436; color: #00ffcc; border: 1px solid #00ffcc; padding: 4px 8px;
       border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: bold; height: auto;
+      box-shadow: 0 0 6px rgba(0,255,204,0.2); transition: all 0.2s ease;
     }
-    .folder-nav-btn:hover { background: #00ffcc; color: #08090e; }
+    .folder-nav-btn:hover { background: #00ffcc; color: #08090e; box-shadow: 0 0 12px rgba(0,255,204,0.6); }
     
     .folder-playlist-container {
       flex: 1; background: #0a0c13; border: 1px solid #282d42;
       border-radius: 4px; max-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; padding: 2px;
+      scroll-behavior: smooth; box-shadow: inset 0 0 8px rgba(0,0,0,0.8);
     }
     .playlist-item {
       display: flex; align-items: center; justify-content: space-between; background: #131722;
       border: 1px solid #1a2233; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; color: #b0b9d0;
+      transition: all 0.2s ease;
     }
-    .playlist-item.active { background: rgba(0, 255, 204, 0.15); border-color: #00ffcc; color: #00ffcc; font-weight: bold; }
+    .playlist-item:hover { background: #1b2233; color: #fff; }
+    .playlist-item.active { background: rgba(0, 255, 204, 0.15); border-color: #00ffcc; color: #00ffcc; font-weight: bold; box-shadow: 0 0 6px rgba(0,255,204,0.2); }
     .playlist-item.dragging { opacity: 0.4; border: 1px dashed #00ffcc; }
     .drag-handle { cursor: grab; margin-right: 6px; color: #00ffcc; font-size: 0.8rem; padding: 0 4px; }
 
     .crossfader-card {
       background: rgba(21, 24, 36, 0.85); padding: 6px 14px; border-radius: 10px;
-      border: 1px solid #282d42; text-align: center; flex-shrink: 0;
+      border: 1px solid #282d42; text-align: center; flex-shrink: 0; transition: all 0.4s ease;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), 0 0 12px rgba(0, 255, 204, 0.1);
     }
     .crossfader-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; }
-    .crossfader-header h3 { font-size: clamp(0.8rem, 1.3vw, 0.95rem); color: #00ffcc; }
+    .crossfader-header h3 { font-size: clamp(0.8rem, 1.3vw, 0.95rem); color: #00ffcc; text-shadow: 0 0 6px rgba(0,255,204,0.4); }
     .fader-labels { display: flex; justify-content: space-between; font-weight: bold; font-size: 0.7rem; margin-bottom: 2px; }
-    .fader-labels .p1-lbl { color: #ff007f; }
+    .fader-labels .p1-lbl { color: #ff007f; text-shadow: 0 0 4px rgba(255,0,127,0.3); }
     .fader-labels .center-lbl { color: #8f9bb3; font-size: 0.65rem; }
-    .fader-labels .p2-lbl { color: #00bfff; }
+    .fader-labels .p2-lbl { color: #00bfff; text-shadow: 0 0 4px rgba(0,191,255,0.3); }
 
     input[type="range"].crossfader {
       -webkit-appearance: none; width: 100%; height: 8px; border-radius: 6px;
       background: linear-gradient(90deg, #ff007f 0%, #1a1e2e 50%, #00bfff 100%);
-      border: 1px solid #282d42; outline: none;
+      border: 1px solid #282d42; outline: none; box-shadow: inset 0 0 5px rgba(0,0,0,0.8);
     }
     input[type="range"].crossfader::-webkit-slider-thumb {
       -webkit-appearance: none; width: 18px; height: 20px; border-radius: 3px;
-      background: #ffffff; border: 2px solid #00ffcc; cursor: pointer;
+      background: #ffffff; border: 2px solid #00ffcc; cursor: pointer; box-shadow: 0 0 10px #00ffcc;
     }
 
     .eq-container {
       background: rgba(21, 24, 36, 0.85); padding: 8px 10px; border-radius: 10px;
       border: 1px solid #282d42; flex-shrink: 0; height: 38vh; display: flex; flex-direction: column; gap: 8px;
+      transition: all 0.4s ease; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), 0 0 15px rgba(0, 255, 204, 0.08);
     }
-    .eq-channel { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+    .eq-channel { flex: 1; display: flex; flex-direction: column; min-height: 0; transition: all 0.3s ease; }
     .eq-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px; }
-    .eq-header h2 { color: #00ffcc; font-size: clamp(0.7rem, 1.1vw, 0.8rem); text-transform: uppercase; }
-    .eq-header h2.left-title { color: #ff007f; }
-    .eq-header h2.right-title { color: #00bfff; }
+    .eq-header h2 { color: #00ffcc; font-size: clamp(0.7rem, 1.1vw, 0.8rem); text-transform: uppercase; text-shadow: 0 0 6px rgba(0,255,204,0.4); }
+    .eq-header h2.left-title { color: #ff007f; text-shadow: 0 0 6px rgba(255,0,127,0.4); }
+    .eq-header h2.right-title { color: #00bfff; text-shadow: 0 0 6px rgba(0,191,255,0.4); }
     
     .drive-btn-group { display: flex; gap: 4px; align-items: center; position: relative; }
     .preset-wrapper { position: relative; width: 130px; height: 24px; }
@@ -326,26 +346,29 @@
       border: 1px solid #282d42; padding: 2px 4px; border-radius: 4px; font-size: 0.65rem;
       outline: none; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
     }
-    .preset-select:focus { border-color: #00ffcc; }
+    .preset-select:focus { border-color: #00ffcc; box-shadow: 0 0 8px rgba(0,255,204,0.4); }
     .preset-select option { padding: 4px; background: #0a0c13; color: #00ffcc; }
     
     .btn-drive {
       background: #1e2436; color: #00ffcc; border: 1px solid #00ffcc; padding: 2px 6px;
       border-radius: 4px; font-size: 0.6rem; cursor: pointer; font-weight: bold; height: 24px;
+      box-shadow: 0 0 6px rgba(0,255,204,0.2); transition: all 0.2s ease;
     }
-    .btn-drive:hover { background: #00ffcc; color: #08090e; }
-    .btn-drive:disabled { opacity: 0.4; cursor: not-allowed; background: #1e2436; color: #8f9bb3; border-color: #282d42; }
+    .btn-drive:hover { background: #00ffcc; color: #08090e; box-shadow: 0 0 10px rgba(0,255,204,0.6); }
+    .btn-drive:disabled { opacity: 0.4; cursor: not-allowed; background: #1e2436; color: #8f9bb3; border-color: #282d42; box-shadow: none; }
 
     .eq-sliders { display: flex; gap: 2px; overflow-x: auto; flex: 1; align-items: center; }
-    .slider-group { display: flex; flex-direction: column; align-items: center; min-width: 14px; height: 100%; justify-content: space-between; flex: 1; touch-action: none; }
+    .slider-group { display: flex; flex-direction: column; align-items: center; min-width: 14px; height: 100%; justify-content: space-between; flex: 1; }
     .slider-group span { font-size: 0.45rem; color: #8f9bb3; }
     .slider-group input[type="range"] {
       -webkit-appearance: none; writing-mode: bt-lr; appearance: slider-vertical;
       width: 4px; height: 60%; background: #0e1017; border-radius: 2px; outline: none; border: 1px solid #282d42;
-      pointer-events: none; /* Mouse/Touch interaction handled by parent container smoothly */
+      box-shadow: inset 0 0 4px rgba(0,0,0,0.8);
+      touch-action: none;
     }
     .slider-group input[type="range"]::-webkit-slider-thumb {
       -webkit-appearance: none; width: 100%; height: 8px; border-radius: 2px; background: #00ffcc; border: 1px solid #ffffff;
+      box-shadow: 0 0 6px #00ffcc;
     }
 
     /* Floating Large RGB Ring Light Unlock Button Container */
@@ -367,7 +390,7 @@
       width: 100%; height: 100%;
       border-radius: 50%;
       pointer-events: none;
-      animation: rgbRotate 3s linear infinite;
+      animation: rgbRotate 2s linear infinite;
       box-shadow: 0 0 25px rgba(0, 255, 204, 0.2);
     }
 
@@ -392,11 +415,12 @@
       background: #08090e; border: 2px solid #00ffcc;
       color: #00ffcc; font-size: 2.2rem; cursor: pointer;
       display: flex; justify-content: center; align-items: center;
-      box-shadow: 0 0 20px rgba(0, 255, 204, 0.5);
-      z-index: 2;
+      box-shadow: 0 0 20px rgba(0, 255, 204, 0.5), inset 0 0 10px rgba(0,255,204,0.3);
+      z-index: 2; transition: all 0.3s ease;
     }
     .btn-large-unlock:hover {
-      background: #00ffcc; color: #08090e; transform: scale(1.05);
+      background: #00ffcc; color: #08090e; transform: scale(1.08);
+      box-shadow: 0 0 35px rgba(0, 255, 204, 0.9), inset 0 0 15px rgba(0,0,0,0.5);
     }
     .unlock-hint-text {
       font-size: 0.75rem; color: #00ffcc; font-weight: bold; letter-spacing: 1px;
@@ -411,7 +435,7 @@
       height: 60vh !important;
       border-radius: 0 0 15px 15px;
       border: 1px solid #00ffcc;
-      box-shadow: 0 0 25px rgba(0, 255, 204, 0.2);
+      box-shadow: 0 0 30px rgba(0, 255, 204, 0.3);
     }
     body.screen-locked #rgbLockContainer {
       display: flex;
@@ -461,7 +485,7 @@
         <button class="btn-capture" id="tabAudioBtn" onclick="toggleTabAudio()">🎵 Link Chrome Tab</button>
         <button class="btn-fullscreen" id="fullscreenBtn" onclick="toggleFullscreen()">⛶ Fullscreen</button>
         
-        <!-- Echo Control Group -->
+        <!-- Echo Control Group with Checkbox Box -->
         <div class="echo-control-group">
           <label class="echo-label" for="echoCheckbox">
             <input type="checkbox" id="echoCheckbox" class="echo-checkbox" onchange="toggleEchoCheckbox(this)"> ECHO:
@@ -551,14 +575,14 @@
       <div class="crossfader-card" id="crossfaderCard">
         <div class="crossfader-header">
           <h3>Crossfader</h3>
-          <span id="crossfaderStatus" style="font-size:0.75rem; color:#00ffcc;">Center (50/50)</span>
+          <span id="crossfaderStatus" style="font-size:0.75rem; color:#00ffcc;">Center</span>
         </div>
         <div class="fader-labels">
           <span class="p1-lbl">◀ Deck Audio File Player 1</span>
           <span class="center-lbl">MIX</span>
           <span class="p2-lbl">Deck Audio File Player 2 ▶</span>
         </div>
-        <input type="range" id="crossfader" class="crossfader" min="0" max="100" value="50" step="1">
+        <input type="range" id="crossfader" class="crossfader" min="0" max="100" value="50" step="1" oninput="updateCrossfader()">
       </div>
 
       <div class="eq-container">
@@ -615,24 +639,24 @@
         if (type === 'on') {
           osc.type = 'sine';
           osc.frequency.setValueAtTime(150, now);
-          osc.frequency.exponentialRampToValueAtTime(880, now + 1.2);
+          osc.frequency.exponentialRampToValueAtTime(880, now + 2.5);
 
           gain.gain.setValueAtTime(0, now);
-          gain.gain.linearRampToValueAtTime(0.2, now + 0.1);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + 1.3);
+          gain.gain.linearRampToValueAtTime(0.3, now + 0.3);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 2.9);
 
           osc.start(now);
-          osc.stop(now + 1.4);
+          osc.stop(now + 3.0);
         } else if (type === 'off') {
           osc.type = 'sawtooth';
           osc.frequency.setValueAtTime(600, now);
-          osc.frequency.exponentialRampToValueAtTime(40, now + 1.2);
+          osc.frequency.exponentialRampToValueAtTime(40, now + 2.5);
 
-          gain.gain.setValueAtTime(0.2, now);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + 1.3);
+          gain.gain.setValueAtTime(0.3, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 2.9);
 
           osc.start(now);
-          osc.stop(now + 1.4);
+          osc.stop(now + 3.0);
         }
       } catch (e) {
         console.error("Audio Sound Effect Error:", e);
@@ -671,7 +695,7 @@
         unlockBtn.disabled = false;
         lockBox.classList.remove('verifying-anim', 'shake-anim');
         passInput.focus();
-      }, 2000);
+      }, 3000);
     }
 
     function powerOffSystem() {
@@ -703,7 +727,7 @@
         currentPassword = "";
         document.getElementById('passInput').value = "";
         document.getElementById('lockError').innerText = "";
-      }, 2000);
+      }, 3000);
     }
 
     function clearLockError() {
@@ -822,13 +846,14 @@
     const eqContainerLeft = document.getElementById('eqSlidersLeft');
     const eqContainerRight = document.getElementById('eqSlidersRight');
     const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d', { alpha: false });
+    const ctx = canvas.getContext('2d');
     
     const tabAudioToggle = document.getElementById('tabAudioToggle');
     const fileAudioToggle = document.getElementById('fileAudioToggle');
     const stereoToggle = document.getElementById('stereoToggle');
     const tabAudioBtn = document.getElementById('tabAudioBtn');
 
+    const deck1Card = document.getElementById('deck1Card');
     const deck2Card = document.getElementById('deck2Card');
     const crossfaderCard = document.getElementById('crossfaderCard');
     const rightEqChannel = document.getElementById('rightEqChannel');
@@ -1166,7 +1191,11 @@
       try {
         const constraints = {
           video: true,
-          audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true
+          }
         };
 
         tabStream = await navigator.mediaDevices.getDisplayMedia(constraints);
@@ -1187,13 +1216,17 @@
         }
         
         tabGainNode.gain.value = 1;
+        
         tabSource.connect(tabGainNode);
         tabGainNode.connect(mainMixGain);
 
         tabAudioBtn.innerText = "❌ Cancel Tab Audio";
         tabAudioBtn.classList.add('active');
 
-        audioTrack.onended = () => { cancelTabAudio(); };
+        audioTrack.onended = () => {
+          cancelTabAudio();
+        };
+
       } catch (err) {
         console.error("Tab Capture Failed: ", err);
         cancelTabAudio();
@@ -1209,6 +1242,7 @@
         try { tabSource.disconnect(); } catch (e) {}
         tabSource = null;
       }
+
       tabAudioBtn.innerText = "🎵 Link Chrome Tab";
       tabAudioBtn.classList.remove('active');
     }
@@ -1280,7 +1314,7 @@
       filtersRight[filtersRight.length - 1].connect(merger, 0, 1);
 
       analyser = audioCtx.createAnalyser();
-      analyser.fftSize = 64;
+      analyser.fftSize = 128;
 
       merger.connect(analyser);
       analyser.connect(audioCtx.destination);
@@ -1309,8 +1343,6 @@
       });
     });
 
-    crossfader.addEventListener('input', updateCrossfader);
-
     function updateCrossfader() {
       const val = parseFloat(crossfader.value);
       const v1 = Math.cos((val / 100) * (Math.PI / 2));
@@ -1324,7 +1356,7 @@
       if (fileAudioToggle.checked) {
         volVal1.innerText = Math.round(v1 * 100) + '%';
       } else {
-        volVal1.innerText = `Songs: ${folderAudioFiles.length}`;
+        volVal1.innerText = `Files: ${folderAudioFiles.length}`;
       }
       volVal2.innerText = Math.round(v2 * 100) + '%';
 
@@ -1332,10 +1364,10 @@
         crossfaderStatus.innerText = "Center (50/50)";
         crossfaderStatus.style.color = "#00ffcc";
       } else if (val < 50) {
-        crossfaderStatus.innerText = fileAudioToggle.checked ? `Deck 1 (${Math.round(v1*100)}%)` : `Folder Player (${Math.round(v1*100)}%)`;
+        crossfaderStatus.innerText = fileAudioToggle.checked ? `Deck Audio File Player 1 (${Math.round(v1*100)}%)` : `Folder Audio Player (${Math.round(v1*100)}%)`;
         crossfaderStatus.style.color = "#ff007f";
       } else {
-        crossfaderStatus.innerText = `Deck 2 (${Math.round(v2*100)}%)`;
+        crossfaderStatus.innerText = `Deck Audio File Player 2 (${Math.round(v2*100)}%)`;
         crossfaderStatus.style.color = "#00bfff";
       }
     }
@@ -1368,9 +1400,9 @@
         const label = document.createElement('span');
         label.innerText = labelText;
 
-        const updateValue = (newVal) => {
-          let val = Math.max(-12, Math.min(12, newVal));
-          val = Math.round(val * 2) / 2; // step 0.5 round
+        const updateSliderVal = (newVal) => {
+          let val = parseFloat(newVal);
+          val = Math.max(-12, Math.min(12, val));
           slider.value = val;
           if (filtersArray[index]) filtersArray[index].gain.value = val;
 
@@ -1394,54 +1426,48 @@
           if (!stereoToggle.checked) checkSliderChanges('right');
         };
 
-        // --- Mouse Wheel Scroll Support ---
+        slider.addEventListener('input', (e) => {
+          updateSliderVal(e.target.value);
+        });
+
+        // Mouse Wheel Support for Sliders
         group.addEventListener('wheel', (e) => {
           e.preventDefault();
-          const currentVal = parseFloat(slider.value);
-          const stepVal = e.deltaY < 0 ? 0.5 : -0.5;
-          updateValue(currentVal + stepVal);
+          let currentVal = parseFloat(slider.value);
+          let stepVal = e.deltaY < 0 ? 0.5 : -0.5;
+          updateSliderVal(currentVal + stepVal);
         }, { passive: false });
 
-        // --- Touch / Mouse Drag Uthana-Nama Support ---
-        let isDragging = false;
-
-        const handleMove = (clientY) => {
-          const rect = group.getBoundingClientRect();
-          const offsetY = clientY - rect.top;
-          const percentage = 1 - Math.max(0, Math.min(1, offsetY / rect.height));
-          const newVal = -12 + percentage * 24; // Range -12 to +12
-          updateValue(newVal);
+        // Touch & Mouse Drag Support on Slider Groups
+        let isDraggingSlider = false;
+        
+        const handleDragStart = (e) => {
+          isDraggingSlider = true;
+          e.preventDefault();
         };
 
-        group.addEventListener('mousedown', (e) => {
-          isDragging = true;
-          handleMove(e.clientY);
-        });
+        const handleDragMove = (e) => {
+          if (!isDraggingSlider) return;
+          e.preventDefault();
+          const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+          const rect = slider.getBoundingClientRect();
+          let percentage = 1 - (clientY - rect.top) / rect.height;
+          percentage = Math.max(0, Math.min(1, percentage));
+          let newVal = -12 + percentage * 24;
+          updateSliderVal(newVal);
+        };
 
-        window.addEventListener('mousemove', (e) => {
-          if (isDragging) handleMove(e.clientY);
-        });
+        const handleDragEnd = () => {
+          isDraggingSlider = false;
+        };
 
-        window.addEventListener('mouseup', () => {
-          isDragging = false;
-        });
+        group.addEventListener('mousedown', handleDragStart);
+        window.addEventListener('mousemove', handleDragMove);
+        window.addEventListener('mouseup', handleDragEnd);
 
-        group.addEventListener('touchstart', (e) => {
-          isDragging = true;
-          if (e.touches.length > 0) {
-            handleMove(e.touches[0].clientY);
-          }
-        }, { passive: true });
-
-        window.addEventListener('touchmove', (e) => {
-          if (isDragging && e.touches.length > 0) {
-            handleMove(e.touches[0].clientY);
-          }
-        }, { passive: true });
-
-        window.addEventListener('touchend', () => {
-          isDragging = false;
-        });
+        group.addEventListener('touchstart', handleDragStart, { passive: false });
+        window.addEventListener('touchmove', handleDragMove, { passive: false });
+        window.addEventListener('touchend', handleDragEnd);
 
         slidersArray.push(slider);
         group.appendChild(slider);
@@ -1581,11 +1607,11 @@
 
       const totalHeight = canvas.height;
       const baselineY = totalHeight * 0.58;
-      const numBars = 24;
-      const barSpacing = 3;
+      const numBars = 36;
+      const barSpacing = 2;
       const barWidth = (canvas.width - (numBars * barSpacing)) / numBars;
 
-      const maxBlocks = 12;
+      const maxBlocks = 14;
       const blockHeight = 2.5;
       const blockGap = 1.2;
 
@@ -1605,7 +1631,10 @@
       ctx.lineTo(canvas.width, baselineY);
       ctx.strokeStyle = '#00aaff';
       ctx.lineWidth = 1.5;
+      ctx.shadowColor = '#00aaff';
+      ctx.shadowBlur = 8;
       ctx.stroke();
+      ctx.shadowBlur = 0;
 
       for (let i = 0; i < numBars; i++) {
         const dataIndex = Math.floor((i / numBars) * bufferLength);
@@ -1616,7 +1645,7 @@
         if (activeBlocks >= peakCaps[i]) {
           peakCaps[i] = activeBlocks;
         } else {
-          peakCaps[i] -= 0.2;
+          peakCaps[i] -= 0.15;
           if (peakCaps[i] < 0) peakCaps[i] = 0;
         }
 
@@ -1626,20 +1655,60 @@
 
         for (let b = 0; b < maxBlocks; b++) {
           const y = baselineY - (b + 1) * (blockHeight + blockGap);
+
           if (b < activeBlocks) {
             ctx.fillStyle = blockColor;
-            ctx.fillRect(x, y, barWidth, blockHeight);
+            ctx.shadowColor = blockColor;
+            ctx.shadowBlur = 4;
+          } else {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
+            ctx.shadowBlur = 0;
           }
+          ctx.fillRect(x, y, barWidth, blockHeight);
+        }
+        ctx.shadowBlur = 0;
+
+        const peakBlockIndex = Math.floor(peakCaps[i]);
+        if (peakBlockIndex > 0) {
+          const peakY = baselineY - (peakBlockIndex + 1) * (blockHeight + blockGap);
+          ctx.fillStyle = blockColor;
+          ctx.shadowColor = blockColor;
+          ctx.shadowBlur = 6;
+          ctx.fillRect(x, peakY, barWidth, blockHeight);
+          ctx.shadowBlur = 0;
+        }
+
+        for (let b = 0; b < activeBlocks; b++) {
+          const yReflect = baselineY + b * (blockHeight + blockGap) + 3;
+          const alpha = Math.max(0, 0.35 - (b / maxBlocks) * 0.32);
+          
+          ctx.fillStyle = `hsla(${hue % 360}, 100%, 55%, ${alpha})`;
+          ctx.fillRect(x, yReflect, barWidth, blockHeight);
         }
       }
     }
 
     renderVisualizer();
 
-    document.addEventListener('contextmenu', e => e.preventDefault());
-    document.addEventListener('selectstart', e => e.preventDefault());
-    document.addEventListener('keydown', e => {
-      if (e.key === 'F12' || (e.ctrlKey && ['c', 'a', 'u', 's', 'i', 'j'].includes(e.key.toLowerCase()))) {
+    document.addEventListener('contextmenu', function (e) {
+      e.preventDefault();
+    });
+
+    document.addEventListener('selectstart', function (e) {
+      e.preventDefault();
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.ctrlKey && ['c', 'a', 'u', 's', 'C', 'A', 'U', 'S'].includes(e.key)) {
+        e.preventDefault();
+      }
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'F12') {
+        e.preventDefault();
+      }
+      if (e.ctrlKey && e.shiftKey && ['i', 'j', 'c', 'I', 'J', 'C'].includes(e.key)) {
         e.preventDefault();
       }
     });
