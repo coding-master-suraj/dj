@@ -113,6 +113,90 @@
     .lock-box button:disabled { background: #282d42; color: #8f9bb3; cursor: not-allowed; box-shadow: none; }
     #lockError { color: #ff007f; font-size: 0.75rem; min-height: 15px; margin-top: 8px; text-shadow: 0 0 5px rgba(255,0,127,0.5); }
 
+    /* Analogue Timer Modal Window Style */
+    #timerModal {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(8, 9, 14, 0.85); backdrop-filter: blur(10px);
+      display: none; justify-content: center; align-items: center;
+      z-index: 10005; flex-direction: column;
+    }
+    .timer-box {
+      background: #151824; border: 1px solid #ffcc00; padding: 20px;
+      border-radius: 12px; text-align: center; box-shadow: 0 0 25px rgba(255,204,0,0.3);
+      max-width: 320px; width: 90%; display: flex; flex-direction: column; gap: 10px; align-items: center;
+    }
+    .timer-box h2 { color: #ffcc00; font-size: 1rem; text-shadow: 0 0 8px rgba(255,204,0,0.4); }
+
+    /* Analogue Clock Dial Container */
+    .analogue-clock-container {
+      position: relative; width: 150px; height: 150px;
+      background: radial-gradient(circle, #0a0c13 0%, #040507 100%);
+      border: 3px solid #ffcc00; border-radius: 50%;
+      box-shadow: inset 0 0 15px rgba(255,204,0,0.3), 0 0 15px rgba(255,204,0,0.2);
+      margin: 5px auto; cursor: grab;
+      touch-action: none;
+      user-select: none;
+    }
+    .analogue-clock-container.dragging { cursor: grabbing; }
+    .clock-center-dot {
+      position: absolute; top: 50%; left: 50%; width: 8px; height: 8px;
+      background: #ffcc00; border-radius: 50%; transform: translate(-50%, -50%); z-index: 10;
+      box-shadow: 0 0 6px #ffcc00;
+    }
+    /* Clock Needles */
+    .clock-hand {
+      position: absolute; bottom: 50%; left: 50%; transform-origin: bottom center; border-radius: 4px;
+      pointer-events: none;
+    }
+    .clock-hand::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: -12px;
+      width: 22px;
+      height: 22px;
+      transform: translateX(-50%);
+      border-radius: 50%;
+      background: transparent;
+      pointer-events: none;
+    }
+    .hour-hand {
+      width: 4px; height: 38px; background: #00ffcc; transform: translateX(-50%) rotate(0deg); z-index: 6;
+      box-shadow: 0 0 4px #00ffcc;
+    }
+    .minute-hand {
+      width: 2px; height: 52px; background: #ffcc00; transform: translateX(-50%) rotate(0deg); z-index: 8;
+      box-shadow: 0 0 4px #ffcc00;
+    }
+    .clock-number {
+      position: absolute; font-size: 0.65rem; color: #8f9bb3; font-weight: bold;
+    }
+
+    /* AM / PM Toggle Controls */
+    .ampm-container {
+      display: flex; gap: 10px; justify-content: center; align-items: center; margin: 2px 0;
+    }
+    .ampm-btn {
+      background: #0a0c13; border: 1px solid #282d42; color: #8f9bb3; padding: 4px 12px;
+      border-radius: 4px; font-size: 0.75rem; font-weight: bold; cursor: pointer; transition: all 0.2s ease;
+    }
+    .ampm-btn.active {
+      background: #ffcc00; color: #08090e; border-color: #ffcc00; box-shadow: 0 0 8px rgba(255,204,0,0.5);
+    }
+
+    /* Live Timer Display under AM/PM */
+    .live-timer-display {
+      font-size: 0.85rem; color: #00ffcc; font-weight: bold; letter-spacing: 1px;
+      text-shadow: 0 0 6px rgba(0,255,204,0.4); min-height: 18px;
+    }
+
+    .timer-btn-group { display: flex; gap: 8px; width: 100%; margin-top: 4px; }
+    .timer-box button.modal-action-btn {
+      flex: 1; padding: 8px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; font-size: 0.85rem;
+    }
+    .btn-set-timer { background: #ffcc00; color: #08090e; box-shadow: 0 0 10px rgba(255,204,0,0.4); }
+    .btn-close-timer { background: #282d42; color: #fff; }
+
     @keyframes verifyingPulse {
       0% { box-shadow: 0 0 10px rgba(0,255,204,0.3); border-color: #00ffcc; }
       50% { box-shadow: 0 0 35px rgba(0,255,204,0.9); border-color: #00ffcc; transform: scale(1.02); }
@@ -161,6 +245,15 @@
       box-shadow: 0 0 8px rgba(0, 255, 204, 0.4);
     }
     .btn-lock-top:hover { background: #00ffcc; color: #08090e; box-shadow: 0 0 15px #00ffcc; }
+
+    /* Real-Time Timer Button beside Lock Control */
+    .btn-timer-top {
+      height: 32px; padding: 0 10px; border-radius: 16px; background: #151824;
+      border: 1px solid #ffcc00; color: #ffcc00; font-size: 0.75rem; font-weight: bold; cursor: pointer;
+      display: flex; justify-content: center; align-items: center; gap: 6px; transition: all 0.2s ease;
+      box-shadow: 0 0 8px rgba(255, 204, 0, 0.3);
+    }
+    .btn-timer-top:hover { background: #ffcc00; color: #08090e; box-shadow: 0 0 15px #ffcc00; }
 
     h1 { color: #00ffcc; text-shadow: 0 0 12px rgba(0, 255, 204, 0.6); font-size: clamp(0.9rem, 2vw, 1.2rem); text-transform: uppercase; }
     
@@ -452,8 +545,8 @@
 
   <!-- Power Screen -->
   <div id="powerScreen">
-    <button class="power-btn-main" onclick="powerOnSystem()"><i class="fa-solid fa-power-off"></i></button>
-    <div class="power-text-hint">PRESS TO POWER ON</div>
+    <button class="power-btn-main" id="mainPowerBtn" onclick="requestPowerOn()"><i class="fa-solid fa-power-off"></i></button>
+    <div class="power-text-hint" id="powerHintText">PRESS TO POWER ON</div>
   </div>
 
   <!-- Intro Animation Screen -->
@@ -465,10 +558,51 @@
   <!-- Lock Screen Overlay -->
   <div id="lockScreen">
     <div class="lock-box" id="lockBox">
-      <h2>🔒 System Locked</h2>
-      <input type="password" id="passInput" placeholder="Type password..." oninput="clearLockError()" onkeydown="if(event.key==='Enter') unlockSystem()">
+      <h2>🔒 Admin Approval Required</h2>
+      <p id="approvalMsg" style="font-size:0.8rem;color:#00ffcc;margin-bottom:10px;">
+        Please enter your password to unlock.
+      </p>
+      <input type="password" id="passInput" placeholder="Type password..."
+             oninput="clearLockError()"
+             onkeydown="if(event.key==='Enter') unlockSystem()">
       <button id="unlockBtn" onclick="unlockSystem()">UNLOCK</button>
       <div id="lockError"></div>
+    </div>
+  </div>
+
+  <!-- Analogue Timer Modal Window -->
+  <div id="timerModal">
+    <div class="timer-box">
+      <h2><i class="fa-solid fa-clock"></i> Auto Power-Off Timer</h2>
+      <div id="timerModeHint" style="font-size:0.7rem;color:#8f9bb3;min-height:16px;">
+        Drag HOUR or MINUTE hand smoothly
+      </div>
+      
+      <!-- Analogue Clock Dial -->
+      <div class="analogue-clock-container" id="clockDial" onclick="handleClockDialClick(event)">
+        <div class="clock-center-dot"></div>
+        <div class="clock-hand hour-hand" id="hourHand"></div>
+        <div class="clock-hand minute-hand" id="minuteHand"></div>
+        <div class="clock-number" style="top:4px; left:50%; transform:translateX(-50%);">12</div>
+        <div class="clock-number" style="right:6px; top:50%; transform:translateY(-50%);">3</div>
+        <div class="clock-number" style="bottom:4px; left:50%; transform:translateX(-50%);">6</div>
+        <div class="clock-number" style="left:6px; top:50%; transform:translateY(-50%);">9</div>
+      </div>
+
+      <!-- AM / PM Buttons -->
+      <div class="ampm-container">
+        <button class="ampm-btn active" id="btnAM" onclick="setAmPm('AM')">AM</button>
+        <button class="ampm-btn" id="btnPM" onclick="setAmPm('PM')">PM</button>
+      </div>
+
+      <!-- Live Set Timer Display -->
+      <div class="live-timer-display" id="liveTimerDisplay">Select Hour: 12:00 AM</div>
+
+      <!-- Set and Close Buttons -->
+      <div class="timer-btn-group">
+        <button class="modal-action-btn btn-set-timer" onclick="setConsoleTimer()">SET</button>
+        <button class="modal-action-btn btn-close-timer" onclick="closeTimerModal()">CLOSE</button>
+      </div>
     </div>
   </div>
 
@@ -479,6 +613,10 @@
         <button class="btn-power-off-top" title="Power Off System" onclick="powerOffSystem()"><i class="fa-solid fa-power-off"></i></button>
         <h1>Audio DJ Console</h1>
         <button class="btn-lock-top" title="Lock System Controls" onclick="lockConsoleUI()"><i class="fa-solid fa-lock"></i></button>
+        <!-- Real-Time Timer Button -->
+        <button class="btn-timer-top" id="timerBtn" title="Set Auto Power Off Timer" onclick="openTimerModal()">
+          <i class="fa-solid fa-clock"></i> <span id="realtimeTimerDisplay">--:--</span>
+        </button>
       </div>
       
       <div class="top-bar-btns">
@@ -620,19 +758,599 @@
   </div>
 
   <script>
-    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwU_HHHI1YhI_NXRQ8q67-ZbgGrhJGJN3iqLUYjS35KOhWiUWqO5_VZLgYala9IYtPP/exec";
+    // Main DJ Console / preset backend
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwfOkCA0sLgqvtlZ8iOpKb6iBS6aWgqBhnCmIbtIxQ8LxaYr7toI5nV6CrX8GvyfQir/exec";
+
+    // Admin approval backend from index (7)
+    const ADMIN_APPROVAL_GAS_URL = "https://script.google.com/macros/s/AKfycbwfOkCA0sLgqvtlZ8iOpKb6iBS6aWgqBhnCmIbtIxQ8LxaYr7toI5nV6CrX8GvyfQir/exec";
+    const PRESET_GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwfOkCA0sLgqvtlZ8iOpKb6iBS6aWgqBhnCmIbtIxQ8LxaYr7toI5nV6CrX8GvyfQir/exec";
+
     let currentPassword = "";
+    let approvalPollTimer = null;
+    let powerRequestInProgress = false;
     let delayNode = null; 
-    let echoGainNode = null; 
+    let echoGainNode = null;
+    let powerSoundContext = null;
+    let powerSoundOscillator = null;
+    let powerSoundGain = null;
+    let introStarted = false;
+    let accessApproved = false;
+    let accessMonitorTimer = null;
+    let heartbeatTimer = null;
+    let remoteBlockHandled = false;
+
+    // Analogue Timer Variables
+    let selectedTimerHour = 12;
+    let selectedTimerMinute = 0;
+    let selectedTimerAmPm = 'AM';
+
+    // Timer uses an absolute timestamp so it cannot fire immediately just
+    // because the selected minute happens to equal the current minute.
+    let targetAlarmTimestamp = null;
+    let timerSelectionMode = 'hour'; // first tap = hour, second tap = minute
+    let timerTick = null;
+
+    // A stable browser/device ID, same behavior as index (7)
+    let deviceId = localStorage.getItem('dj_device_id');
+    if (!deviceId) {
+      deviceId = 'DEV_' + Math.random().toString(36).slice(2) + Date.now();
+      localStorage.setItem('dj_device_id', deviceId);
+    }
+
+    /* =========================================================
+       FIXED ANALOGUE CLOCK TIMER LOGIC
+       - Tap once to select the hour.
+       - Tap again to select the minute.
+       - SET schedules the next occurrence of that exact time.
+       - Timer is checked by timestamp, not only HH:MM.
+       - If the selected time has already passed today, it runs tomorrow.
+       - SET again replaces the previous timer.
+    ========================================================= */
+
+    function getSelected24Hour() {
+      let h = Number(selectedTimerHour) || 12;
+      if (selectedTimerAmPm === 'PM' && h < 12) h += 12;
+      if (selectedTimerAmPm === 'AM' && h === 12) h = 0;
+      return h;
+    }
+
+    function formatTimerTime() {
+      return `${String(selectedTimerHour).padStart(2, '0')}:${String(selectedTimerMinute).padStart(2, '0')} ${selectedTimerAmPm}`;
+    }
+
+    function openTimerModal() {
+      document.getElementById('timerModal').style.display = 'flex';
+
+      // Start a fresh selection from the current local time.
+      const now = new Date();
+      let h = now.getHours();
+      selectedTimerAmPm = h >= 12 ? 'PM' : 'AM';
+      selectedTimerHour = h % 12 || 12;
+      selectedTimerMinute = now.getMinutes();
+
+      timerSelectionMode = 'hour';
+      updateAmPmButtons();
+      updateClockHandsDisplay();
+      updateTimerModeText();
+    }
+
+    function closeTimerModal() {
+      document.getElementById('timerModal').style.display = 'none';
+    }
+
+    function updateAmPmButtons() {
+      document.getElementById('btnAM').classList.toggle('active', selectedTimerAmPm === 'AM');
+      document.getElementById('btnPM').classList.toggle('active', selectedTimerAmPm === 'PM');
+    }
+
+    function setAmPm(ampm) {
+      selectedTimerAmPm = ampm;
+      updateAmPmButtons();
+      updateClockHandsDisplay();
+    }
+
+    function updateTimerModeText() {
+      const display = document.getElementById('liveTimerDisplay');
+      if (!display) return;
+
+      const modeHint = document.getElementById('timerModeHint');
+      if (modeHint) {
+        modeHint.innerText =
+          timerSelectionMode === 'hour'
+            ? 'Tap dial: HOUR → MINUTE'
+            : 'Drag the selected hand to adjust';
+      }
+
+      if (targetAlarmTimestamp) {
+        const remain = Math.max(0, targetAlarmTimestamp - Date.now());
+        display.innerText = `Timer: ${formatRemainingTime(remain)} left`;
+      } else {
+        display.innerText =
+          timerSelectionMode === 'hour'
+            ? `Select Hour: ${formatTimerTime()}`
+            : `Select Minute: ${formatTimerTime()}`;
+      }
+    }
+
+    // Smooth draggable analogue clock:
+    // drag near the hour hand to change hours, drag near the minute hand to change minutes.
+    // If dragging starts on the dial background, the current selection mode is used.
+    let clockDragging = false;
+    let draggedHand = null;
+
+    function getClockAngleFromPointer(event) {
+      const dial = document.getElementById('clockDial');
+      const rect = dial.getBoundingClientRect();
+      const x = event.clientX - (rect.left + rect.width / 2);
+      const y = event.clientY - (rect.top + rect.height / 2);
+
+      let angle = Math.atan2(y, x) * 180 / Math.PI + 90;
+      if (angle < 0) angle += 360;
+      return angle;
+    }
+
+    function circularDistance(a, b) {
+      const d = Math.abs(a - b) % 360;
+      return Math.min(d, 360 - d);
+    }
+
+    function detectClockHand(angle) {
+      const hourAngle = ((selectedTimerHour % 12) * 30) +
+                        (selectedTimerMinute / 60) * 30;
+      const minuteAngle = selectedTimerMinute * 6;
+
+      // Give the minute hand a wider touch target.
+      if (circularDistance(angle, minuteAngle) <= 22) return 'minute';
+      if (circularDistance(angle, hourAngle) <= 18) return 'hour';
+
+      return timerSelectionMode === 'minute' ? 'minute' : 'hour';
+    }
+
+    function updateFromClockAngle(angle, hand) {
+      if (hand === 'minute') {
+        // Continuous 0–59 minute selection.
+        let minute = Math.round(angle / 6) % 60;
+        selectedTimerMinute = minute;
+        timerSelectionMode = 'hour';
+      } else {
+        // Smooth hour selection. Minute fraction is retained so the hour hand
+        // naturally moves between hour marks.
+        let rawHour = angle / 30;
+        let hour = Math.round(rawHour) % 12;
+        selectedTimerHour = hour === 0 ? 12 : hour;
+        timerSelectionMode = 'minute';
+      }
+
+      updateClockHandsDisplay();
+      updateTimerModeText();
+    }
+
+    function startClockDrag(event) {
+      event.preventDefault();
+
+      const dial = document.getElementById('clockDial');
+      clockDragging = true;
+      draggedHand = detectClockHand(getClockAngleFromPointer(event));
+      dial.classList.add('dragging');
+
+      if (dial.setPointerCapture) {
+        try { dial.setPointerCapture(event.pointerId); } catch (e) {}
+      }
+
+      updateFromClockAngle(getClockAngleFromPointer(event), draggedHand);
+    }
+
+    function moveClockDrag(event) {
+      if (!clockDragging) return;
+      event.preventDefault();
+      updateFromClockAngle(getClockAngleFromPointer(event), draggedHand);
+    }
+
+    function endClockDrag(event) {
+      if (!clockDragging) return;
+      clockDragging = false;
+      draggedHand = null;
+
+      const dial = document.getElementById('clockDial');
+      dial.classList.remove('dragging');
+
+      if (dial.releasePointerCapture) {
+        try { dial.releasePointerCapture(event.pointerId); } catch (e) {}
+      }
+    }
+
+    function handleClockDialClick(event) {
+      // Kept for compatibility with the existing HTML onclick.
+      // Pointer events provide the actual smooth drag behavior.
+      if (!clockDragging) {
+        const angle = getClockAngleFromPointer(event);
+        const hand = detectClockHand(angle);
+        updateFromClockAngle(angle, hand);
+      }
+    }
+
+    function initSmoothClockControl() {
+      const dial = document.getElementById('clockDial');
+      if (!dial || dial.dataset.smoothReady === '1') return;
+
+      dial.dataset.smoothReady = '1';
+      dial.addEventListener('pointerdown', startClockDrag);
+      dial.addEventListener('pointermove', moveClockDrag);
+      dial.addEventListener('pointerup', endClockDrag);
+      dial.addEventListener('pointercancel', endClockDrag);
+      dial.addEventListener('pointerleave', moveClockDrag);
+    }
+
+    function updateClockHandsDisplay() {
+      const hourDeg =
+        ((selectedTimerHour % 12) * 30) +
+        (selectedTimerMinute / 60) * 30;
+      const minuteDeg = selectedTimerMinute * 6;
+
+      document.getElementById('hourHand').style.transform =
+        `translateX(-50%) rotate(${hourDeg}deg)`;
+      document.getElementById('minuteHand').style.transform =
+        `translateX(-50%) rotate(${minuteDeg}deg)`;
+
+      if (!targetAlarmTimestamp) {
+        updateTimerModeText();
+      }
+    }
+
+    function formatRemainingTime(ms) {
+      const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
+      const days = Math.floor(totalSeconds / 86400);
+      const hours = Math.floor((totalSeconds % 86400) / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+
+      if (days > 0) {
+        return `${days}d ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+      }
+      return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+
+    function setConsoleTimer() {
+      const now = new Date();
+      const h24 = getSelected24Hour();
+
+      // Create today's target time.
+      let target = new Date(now);
+      target.setHours(h24, selectedTimerMinute, 0, 0);
+
+      // If that exact time has already passed, schedule the next occurrence.
+      if (target.getTime() <= now.getTime()) {
+        target.setDate(target.getDate() + 1);
+      }
+
+      // Prevent accidental same-second power-off.
+      if (target.getTime() - now.getTime() < 2000) {
+        target.setTime(now.getTime() + 2000);
+      }
+
+      targetAlarmTimestamp = target.getTime();
+
+      const display = document.getElementById('liveTimerDisplay');
+      if (display) {
+        display.innerText = `Timer set: ${formatTimerTime()}`;
+      }
+
+      closeTimerModal();
+      updateTimerButton();
+    }
+
+    function cancelConsoleTimer() {
+      targetAlarmTimestamp = null;
+      updateTimerButton();
+
+      const display = document.getElementById('liveTimerDisplay');
+      if (display) display.innerText = 'Timer: Off';
+    }
+
+    function updateTimerButton() {
+      const displayElem = document.getElementById('realtimeTimerDisplay');
+      if (!displayElem) return;
+
+      if (!targetAlarmTimestamp) {
+        const now = new Date();
+        displayElem.innerText =
+          `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+        return;
+      }
+
+      const remaining = targetAlarmTimestamp - Date.now();
+
+      if (remaining <= 0) {
+        displayElem.innerText = '00:00:00';
+        return;
+      }
+
+      displayElem.innerText = formatRemainingTime(remaining);
+    }
+
+    function runTimerTick() {
+      updateTimerButton();
+
+      if (!targetAlarmTimestamp) return;
+
+      const remaining = targetAlarmTimestamp - Date.now();
+
+      // Small tolerance handles browser timer delays/background throttling.
+      if (remaining <= 0) {
+        targetAlarmTimestamp = null;
+        updateTimerButton();
+
+        try {
+          powerOffSystem();
+        } catch (e) {
+          console.error('Timer power-off error:', e);
+        }
+      }
+    }
+
+    timerTick = setInterval(runTimerTick, 250);
+    runTimerTick();
+
+    initSmoothClockControl();
+
+    /* =========================================================
+       DEVICE ACCESS MONITOR + LIVE HEARTBEAT
+       - ACCEPTED devices stay approved until admin blocks them.
+       - Access is checked every 2 seconds while the page is open.
+       - LIVE heartbeat is sent every 10 seconds while unlocked.
+    ========================================================= */
+
+    let currentLocationData = {
+      location: "Location Permission Not Granted",
+      latitude: "",
+      longitude: "",
+      accuracy: ""
+    };
+
+    async function getCurrentGPSLocation() {
+      if (!navigator.geolocation) return currentLocationData;
+
+      return new Promise(resolve => {
+        navigator.geolocation.getCurrentPosition(
+          position => {
+            currentLocationData = {
+              location:
+                position.coords.latitude.toFixed(6) +
+                ", " +
+                position.coords.longitude.toFixed(6),
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+              accuracy: Math.round(position.coords.accuracy)
+            };
+            resolve(currentLocationData);
+          },
+          () => resolve(currentLocationData),
+          {
+            enableHighAccuracy: true,
+            timeout: 5000,
+            maximumAge: 30000
+          }
+        );
+      });
+    }
+
+    async function checkDeviceAccessStatus() {
+      if (!deviceId) return null;
+
+      try {
+        const res = await fetch(
+          `${ADMIN_APPROVAL_GAS_URL}?action=check_status&deviceId=${encodeURIComponent(deviceId)}&_cb=${Date.now()}`,
+          { cache: "no-store" }
+        );
+
+        const data = await res.json();
+
+        if (data.status === "APPROVED" || data.status === "LIVE") {
+          accessApproved = true;
+          remoteBlockHandled = false;
+          return "APPROVED";
+        }
+
+        if (data.status === "BLOCKED") {
+          accessApproved = false;
+          handleRemoteBlock();
+          return "BLOCKED";
+        }
+
+        accessApproved = false;
+        return data.status || "PENDING";
+
+      } catch (error) {
+        console.log("Access status check error:", error);
+        return null;
+      }
+    }
+
+    function handleRemoteBlock() {
+      if (remoteBlockHandled) return;
+      remoteBlockHandled = true;
+
+      accessApproved = false;
+
+      if (approvalPollTimer) {
+        clearInterval(approvalPollTimer);
+        approvalPollTimer = null;
+      }
+
+      powerRequestInProgress = false;
+
+      /* Stop all DJ audio immediately. */
+      try {
+        if (typeof cancelTabAudio === "function") cancelTabAudio();
+      } catch (e) {}
+
+      try {
+        if (typeof audio1 !== "undefined" && audio1) {
+          audio1.pause();
+          audio1.currentTime = 0;
+        }
+        if (typeof audio2 !== "undefined" && audio2) {
+          audio2.pause();
+          audio2.currentTime = 0;
+        }
+      } catch (e) {}
+
+      stopDeviceHeartbeat();
+
+      document.body.classList.remove("screen-locked");
+
+      const animScreen = document.getElementById("introAnimationScreen");
+      const title = document.getElementById("animatedTitle");
+      const subtitle = document.getElementById("animatedSubtitle");
+
+      if (animScreen && title && subtitle) {
+        animScreen.style.display = "flex";
+        title.innerText = "Audio DJ Console";
+        subtitle.innerText = "BLOCKED BY ADMIN";
+        subtitle.style.display = "block";
+
+        title.className = "animated-title";
+        subtitle.className = "animated-subtitle";
+        void title.offsetWidth;
+        void subtitle.offsetWidth;
+        title.className = "animated-title play-power-off";
+        subtitle.className = "animated-subtitle play-power-off";
+        playPowerSound("off");
+
+        setTimeout(() => {
+          animScreen.style.display = "none";
+          showBlockedPowerScreen();
+        }, 3000);
+      } else {
+        showBlockedPowerScreen();
+      }
+    }
+
+    function showBlockedPowerScreen() {
+      const powerScreen = document.getElementById("powerScreen");
+      const lockScreen = document.getElementById("lockScreen");
+      const hintText = document.getElementById("powerHintText");
+      const powerBtn = document.getElementById("mainPowerBtn");
+
+      if (powerScreen) powerScreen.style.display = "flex";
+      if (lockScreen) lockScreen.style.display = "none";
+      if (hintText) {
+        hintText.innerText =
+          "❌ BLOCKED — PRESS POWER TO REQUEST UNBLOCK";
+      }
+      if (powerBtn) powerBtn.disabled = false;
+    }
+
+    async function sendDeviceHeartbeat() {
+      if (!deviceId || !accessApproved) return;
+
+      const powerScreen = document.getElementById("powerScreen");
+      const lockScreen = document.getElementById("lockScreen");
+
+      /* Heartbeat is only for an actually unlocked console. */
+      if (
+        powerScreen &&
+        powerScreen.style.display !== "none"
+      ) return;
+
+      if (
+        lockScreen &&
+        lockScreen.style.display !== "none"
+      ) return;
+
+      try {
+        const loc = await getCurrentGPSLocation();
+
+        const response = await fetch(ADMIN_APPROVAL_GAS_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "text/plain;charset=utf-8"
+          },
+          body: JSON.stringify({
+            action: "heartbeat",
+            deviceId: deviceId,
+            deviceName:
+              /Mobile|Android|iPhone|iPad/i.test(navigator.userAgent)
+                ? "Mobile Device"
+                : "Desktop PC",
+            location: loc.location,
+            latitude: loc.latitude,
+            longitude: loc.longitude,
+            accuracy: loc.accuracy
+          })
+        });
+
+        const result = await response.json();
+
+        if (result.status === "BLOCKED") {
+          handleRemoteBlock();
+        }
+
+      } catch (error) {
+        console.log("Heartbeat error:", error);
+      }
+    }
+
+    function startDeviceHeartbeat() {
+      stopDeviceHeartbeat();
+      sendDeviceHeartbeat();
+      heartbeatTimer = setInterval(sendDeviceHeartbeat, 10000);
+    }
+
+    function stopDeviceHeartbeat() {
+      if (heartbeatTimer) {
+        clearInterval(heartbeatTimer);
+        heartbeatTimer = null;
+      }
+    }
+
+    function startAccessMonitor() {
+      if (accessMonitorTimer) clearInterval(accessMonitorTimer);
+
+      checkDeviceAccessStatus();
+      accessMonitorTimer = setInterval(checkDeviceAccessStatus, 2000);
+    }
+
+    document.addEventListener("visibilitychange", function () {
+      if (!document.hidden) {
+        checkDeviceAccessStatus();
+
+        const powerScreen = document.getElementById("powerScreen");
+        const lockScreen = document.getElementById("lockScreen");
+
+        if (
+          powerScreen &&
+          lockScreen &&
+          powerScreen.style.display === "none" &&
+          lockScreen.style.display === "none"
+        ) {
+          sendDeviceHeartbeat();
+        }
+      }
+    });
 
     function playPowerSound(type) {
       try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        if (powerSoundOscillator) {
+          try { powerSoundOscillator.stop(); } catch (e) {}
+          powerSoundOscillator = null;
+        }
+
+        const ctx = powerSoundContext || (powerSoundContext =
+          new (window.AudioContext || window.webkitAudioContext)());
+
+        if (ctx.state === 'suspended') {
+          ctx.resume().catch(() => {});
+        }
+
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
 
         osc.connect(gain);
         gain.connect(ctx.destination);
+
+        powerSoundOscillator = osc;
+        powerSoundGain = gain;
 
         const now = ctx.currentTime;
 
@@ -658,12 +1376,165 @@
           osc.start(now);
           osc.stop(now + 3.0);
         }
+
+        osc.onended = () => {
+          if (powerSoundOscillator === osc) powerSoundOscillator = null;
+        };
       } catch (e) {
         console.error("Audio Sound Effect Error:", e);
       }
     }
 
-    function powerOnSystem() {
+    async function requestPowerOn() {
+      if (powerRequestInProgress) return;
+
+      const hintText = document.getElementById("powerHintText");
+      const powerBtn = document.getElementById("mainPowerBtn");
+
+      powerRequestInProgress = true;
+      if (powerBtn) powerBtn.disabled = true;
+
+      try {
+        const currentStatus = await checkDeviceAccessStatus();
+
+        if (currentStatus === "APPROVED") {
+          powerRequestInProgress = false;
+          if (powerBtn) powerBtn.disabled = false;
+          startIntroAnimation();
+          return;
+        }
+
+        if (currentStatus === "BLOCKED") {
+          hintText.innerText = "Sending unblock request to admin email...";
+
+          const res = await fetch(ADMIN_APPROVAL_GAS_URL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "text/plain;charset=utf-8"
+            },
+            body: JSON.stringify({
+              action: "request_power_on",
+              deviceId: deviceId,
+              deviceName:
+                /Mobile|Android|iPhone|iPad/i.test(navigator.userAgent)
+                  ? "Mobile Device"
+                  : "Desktop PC",
+              location: currentLocationData.location,
+              latitude: currentLocationData.latitude,
+              longitude: currentLocationData.longitude,
+              accuracy: currentLocationData.accuracy
+            })
+          });
+
+          const data = await res.json();
+
+          if (
+            data.status === "blocked_request_sent" ||
+            data.status === "blocked"
+          ) {
+            hintText.innerText = "🔓 Unblock request sent to admin email.";
+          } else if (data.status === "APPROVED") {
+            accessApproved = true;
+            remoteBlockHandled = false;
+            startIntroAnimation();
+          }
+
+          powerRequestInProgress = false;
+          if (powerBtn) powerBtn.disabled = false;
+          return;
+        }
+
+        hintText.innerText = "Sending access request to email...";
+
+        const res = await fetch(ADMIN_APPROVAL_GAS_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "text/plain;charset=utf-8"
+          },
+          body: JSON.stringify({
+            action: "request_power_on",
+            deviceId: deviceId,
+            deviceName:
+              /Mobile|Android|iPhone|iPad/i.test(navigator.userAgent)
+                ? "Mobile Device"
+                : "Desktop PC",
+            location: currentLocationData.location,
+            latitude: currentLocationData.latitude,
+            longitude: currentLocationData.longitude,
+            accuracy: currentLocationData.accuracy
+          })
+        });
+
+        const data = await res.json();
+
+        if (data.status === "APPROVED") {
+          accessApproved = true;
+          powerRequestInProgress = false;
+          if (powerBtn) powerBtn.disabled = false;
+          startIntroAnimation();
+          return;
+        }
+
+        if (
+          data.status === "blocked_request_sent" ||
+          data.status === "blocked" ||
+          data.status === "BLOCKED"
+        ) {
+          hintText.innerText = "🔓 Unblock request sent to admin email.";
+          powerRequestInProgress = false;
+          if (powerBtn) powerBtn.disabled = false;
+          return;
+        }
+
+        hintText.innerText = "Waiting for Admin Email Approval...";
+        startApprovalPolling();
+
+      } catch (err) {
+        console.error("Power request error:", err);
+        hintText.innerText = "Connection Error! Try Again.";
+        powerRequestInProgress = false;
+        if (powerBtn) powerBtn.disabled = false;
+      }
+    }
+
+    function startApprovalPolling() {
+      if (approvalPollTimer) clearInterval(approvalPollTimer);
+
+      const checkApproval = async () => {
+        try {
+          const res = await fetch(
+            `${ADMIN_APPROVAL_GAS_URL}?action=check_status&deviceId=${encodeURIComponent(deviceId)}`
+          );
+          const data = await res.json();
+
+          if (data.status === "APPROVED" || data.status === "LIVE") {
+            clearInterval(approvalPollTimer);
+            approvalPollTimer = null;
+            powerRequestInProgress = false;
+            accessApproved = true;
+            remoteBlockHandled = false;
+
+            const powerBtn = document.getElementById('mainPowerBtn');
+            if (powerBtn) powerBtn.disabled = false;
+
+            startIntroAnimation();
+          } else if (data.status === "BLOCKED") {
+            clearInterval(approvalPollTimer);
+            approvalPollTimer = null;
+            powerRequestInProgress = false;
+            handleRemoteBlock();
+          }
+        } catch (e) {}
+      };
+
+      checkApproval();
+      approvalPollTimer = setInterval(checkApproval, 3000);
+    }
+
+    function startIntroAnimation() {
+      if (introStarted) return;
+      introStarted = true;
+
       const pScreen = document.getElementById('powerScreen');
       const animScreen = document.getElementById('introAnimationScreen');
       const title = document.getElementById('animatedTitle');
@@ -671,11 +1542,15 @@
 
       pScreen.style.display = 'none';
       animScreen.style.display = 'flex';
-      
+
       title.innerText = "Audio DJ Console";
       subtitle.innerText = "Powered by Coding Master Suraj";
       subtitle.style.display = 'block';
 
+      title.className = 'animated-title';
+      subtitle.className = 'animated-subtitle';
+      void title.offsetWidth;
+      void subtitle.offsetWidth;
       title.className = 'animated-title play-power-on';
       subtitle.className = 'animated-subtitle play-power-on';
 
@@ -685,7 +1560,7 @@
         animScreen.style.display = 'none';
         document.getElementById('lockScreen').style.display = 'flex';
         document.getElementById('lockError').innerText = "";
-        
+
         const passInput = document.getElementById('passInput');
         const unlockBtn = document.getElementById('unlockBtn');
         const lockBox = document.getElementById('lockBox');
@@ -699,13 +1574,32 @@
     }
 
     function powerOffSystem() {
+      // Stop any pending auto-off timer once the console is powered off.
+      targetAlarmTimestamp = null;
+      updateTimerButton();
+
+      if (approvalPollTimer) {
+        clearInterval(approvalPollTimer);
+        approvalPollTimer = null;
+      }
+      powerRequestInProgress = false;
+      introStarted = false;
+      stopDeviceHeartbeat();
+
+      const powerBtn = document.getElementById('mainPowerBtn');
+      if (powerBtn) powerBtn.disabled = false;
+
       const animScreen = document.getElementById('introAnimationScreen');
       const title = document.getElementById('animatedTitle');
       const subtitle = document.getElementById('animatedSubtitle');
 
-      cancelTabAudio();
-      resetDeck(1);
-      resetDeck(2);
+      if (typeof cancelTabAudio === 'function') {
+        try { cancelTabAudio(); } catch (e) {}
+      }
+      if (typeof resetDeck === 'function') {
+        try { resetDeck(1); } catch (e) {}
+        try { resetDeck(2); } catch (e) {}
+      }
 
       document.body.classList.remove('screen-locked');
 
@@ -714,6 +1608,10 @@
       subtitle.innerText = "Good Bye!";
       subtitle.style.display = 'block';
 
+      title.className = 'animated-title';
+      subtitle.className = 'animated-subtitle';
+      void title.offsetWidth;
+      void subtitle.offsetWidth;
       title.className = 'animated-title play-power-off';
       subtitle.className = 'animated-subtitle play-power-off';
 
@@ -723,10 +1621,19 @@
         animScreen.style.display = 'none';
         document.getElementById('powerScreen').style.display = 'flex';
         document.getElementById('lockScreen').style.display = 'none';
-        
+
         currentPassword = "";
         document.getElementById('passInput').value = "";
         document.getElementById('lockError').innerText = "";
+        document.getElementById('powerHintText').innerText = "PRESS TO POWER ON";
+
+        const passInput = document.getElementById('passInput');
+        const unlockBtn = document.getElementById('unlockBtn');
+        const lockBox = document.getElementById('lockBox');
+
+        passInput.disabled = false;
+        unlockBtn.disabled = false;
+        lockBox.classList.remove('verifying-anim', 'shake-anim');
       }, 3000);
     }
 
@@ -774,6 +1681,9 @@
     });
 
     async function unlockSystem() {
+      const lockScreen = document.getElementById('lockScreen');
+      if (lockScreen.style.display !== 'flex') return;
+
       const passInput = document.getElementById('passInput');
       const unlockBtn = document.getElementById('unlockBtn');
       const errBox = document.getElementById('lockError');
@@ -796,7 +1706,7 @@
       errBox.innerText = "Verifying...";
 
       try {
-        const res = await fetch(`${GAS_WEB_APP_URL}?action=verify&password=${encodeURIComponent(enteredPass)}`);
+        const res = await fetch(`${PRESET_GAS_WEB_APP_URL}?action=verify&password=${encodeURIComponent(enteredPass)}`);
         const data = await res.json();
 
         if (data.status === "success") {
@@ -805,6 +1715,7 @@
           document.getElementById('lockScreen').style.display = 'none';
           document.body.classList.remove('screen-locked');
           errBox.innerText = "";
+          startDeviceHeartbeat();
           fetchAllPresets();
         } else {
           lockBox.classList.remove('verifying-anim');
@@ -819,12 +1730,35 @@
       } catch (err) {
         lockBox.classList.remove('verifying-anim');
         lockBox.classList.add('shake-anim');
-        errBox.innerText = "Connection error!";
+        errBox.innerText = "Connection error! Password server is not responding.";
         
         passInput.disabled = false;
         unlockBtn.disabled = false;
         passInput.focus();
       }
+    }
+
+    async function initializeDeviceAccess() {
+      const hintText = document.getElementById("powerHintText");
+
+      if (hintText) {
+        hintText.innerText = "Checking device access...";
+      }
+
+      const status = await checkDeviceAccessStatus();
+
+      if (status === "APPROVED") {
+        accessApproved = true;
+        if (hintText) {
+          hintText.innerText = "✅ DEVICE APPROVED — PRESS POWER TO START";
+        }
+      } else if (status === "BLOCKED") {
+        showBlockedPowerScreen();
+      } else if (hintText) {
+        hintText.innerText = "PRESS TO POWER ON — FIRST USE REQUIRES ADMIN APPROVAL";
+      }
+
+      startAccessMonitor();
     }
 
     const frequencies = [
@@ -1430,7 +2364,6 @@
           updateSliderVal(e.target.value);
         });
 
-        // Mouse Wheel Support for Sliders
         group.addEventListener('wheel', (e) => {
           e.preventDefault();
           let currentVal = parseFloat(slider.value);
@@ -1438,7 +2371,6 @@
           updateSliderVal(currentVal + stepVal);
         }, { passive: false });
 
-        // Touch & Mouse Drag Support on Slider Groups
         let isDraggingSlider = false;
         
         const handleDragStart = (e) => {
@@ -1486,7 +2418,7 @@
       const selectRight = document.getElementById('presetListRight');
 
       try {
-        const res = await fetch(`${GAS_WEB_APP_URL}?action=list&password=${encodeURIComponent(currentPassword)}`);
+        const res = await fetch(`${PRESET_GAS_WEB_APP_URL}?action=list&password=${encodeURIComponent(currentPassword)}`);
         const data = await res.json();
 
         selectLeft.innerHTML = '<option value="" disabled selected>-- Select Preset --</option>';
@@ -1536,7 +2468,7 @@
       const values = sliders.map(s => parseFloat(s.value));
 
       try {
-        await fetch(GAS_WEB_APP_URL, {
+        await fetch(PRESET_GAS_WEB_APP_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({
@@ -1569,7 +2501,7 @@
       if (!fileName) return;
 
       try {
-        const res = await fetch(`${GAS_WEB_APP_URL}?action=get&fileName=${encodeURIComponent(fileName)}&password=${encodeURIComponent(currentPassword)}`);
+        const res = await fetch(`${PRESET_GAS_WEB_APP_URL}?action=get&fileName=${encodeURIComponent(fileName)}&password=${encodeURIComponent(currentPassword)}`);
         const data = await res.json();
 
         if (data.status === "success" && data.values) {
@@ -1689,6 +2621,8 @@
     }
 
     renderVisualizer();
+
+    initializeDeviceAccess();
 
     document.addEventListener('contextmenu', function (e) {
       e.preventDefault();
