@@ -757,22 +757,6 @@
     </div>
   </div>
 
-
-
-
-
-<!-- Pop-up Notification Banner -->
-<div id="gasPopupNotification" style="display:none; position:fixed; bottom:20px; right:20px; background:#151824; border:1px solid #00ffcc; padding:15px; border-radius:8px; z-index:10000; box-shadow:0 0 20px rgba(0,255,204,0.4); max-width:300px; color:#e1e6f0;">
-  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-    <strong style="color:#00ffcc; font-size:0.85rem;"><i class="fa-solid fa-bell"></i> Script Notification</strong>
-    <button onclick="closeGasPopup()" style="background:none; border:none; color:#ff0055; cursor:pointer; font-weight:bold;">✕</button>
-  </div>
-  <p id="gasPopupText" style="font-size:0.75rem; color:#b0b9d0;"></p>
-</div>
-
-
-  
-
   <script>
     // Main DJ Console / preset backend
     const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwfOkCA0sLgqvtlZ8iOpKb6iBS6aWgqBhnCmIbtIxQ8LxaYr7toI5nV6CrX8GvyfQir/exec";
@@ -2662,50 +2646,6 @@
         e.preventDefault();
       }
     });
-
-
-
-
-
-
-function showGasPopup(messageText) {
-  const popup = document.getElementById('gasPopupNotification');
-  const textElem = document.getElementById('gasPopupText');
-  if (popup && textElem) {
-    textElem.innerText = messageText;
-    popup.style.display = 'block';
-    
-    // Auto-hide after 6 seconds
-    setTimeout(() => {
-      closeGasPopup();
-    }, 6000);
-  }
-}
-
-function closeGasPopup() {
-  const popup = document.getElementById('gasPopupNotification');
-  if (popup) popup.style.display = 'none';
-}
-
-// Function to poll or check Google Apps Script for mail/notifications
-async function pollScriptNotifications() {
-  try {
-    const response = await fetch(`${GAS_NOTIFICATION_URL}?action=get_notifications&_cb=${Date.now()}`);
-    const data = await response.json();
-    if (data && data.notification) {
-      showGasPopup(data.notification);
-    }
-  } catch (err) {
-    console.error("Failed to fetch script notification:", err);
-  }
-}
-
-// Check for updates every 30 seconds
-setInterval(pollScriptNotifications, 30000);
-
-
-
-    
   </script>
 </body>
 </html>
