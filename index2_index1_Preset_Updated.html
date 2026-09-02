@@ -1,0 +1,2613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>DJ Console</title>
+  <!-- Font Awesome CDN for Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100vw; height: 100vh; overflow: hidden;
+      background: radial-gradient(circle at center, #131622 0%, #08090e 100%);
+      color: #e1e6f0; font-family: 'Segoe UI', system-ui, sans-serif;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+
+    /* System Power Start Screen */
+    #powerScreen {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: #08090e; display: flex; flex-direction: column;
+      justify-content: center; align-items: center; z-index: 10000;
+      transition: opacity 0.5s ease;
+    }
+    .power-btn-main {
+      width: 90px; height: 90px; border-radius: 50%;
+      background: #151824; border: 2px solid #00ffcc;
+      color: #00ffcc; font-size: 2.2rem; cursor: pointer;
+      box-shadow: 0 0 25px rgba(0,255,204,0.4), inset 0 0 10px rgba(0,255,204,0.3);
+      display: flex; justify-content: center; align-items: center;
+      transition: all 0.3s ease;
+    }
+    .power-btn-main:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 40px rgba(0,255,204,0.8), inset 0 0 20px rgba(0,255,204,0.6);
+      background: #00ffcc; color: #08090e;
+    }
+    .power-text-hint { margin-top: 15px; font-size: 0.85rem; color: #8f9bb3; letter-spacing: 1px; }
+
+    /* Intro & Power Off Title Animation Overlay */
+    #introAnimationScreen {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: #08090e; display: none; justify-content: center;
+      align-items: center; flex-direction: column; z-index: 9999;
+    }
+    .animated-title {
+      font-size: clamp(1.8rem, 5vw, 3.5rem);
+      color: #00ffcc;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      text-shadow: 0 0 20px #00ffcc, 0 0 40px #00ffcc;
+      opacity: 0;
+      transform: scale(0.5);
+      text-align: center;
+    }
+    .animated-subtitle {
+      font-size: clamp(0.8rem, 2vw, 1.2rem);
+      color: #ff007f;
+      letter-spacing: 2px;
+      text-shadow: 0 0 10px #ff007f;
+      margin-top: 10px;
+      opacity: 0;
+      transform: scale(0.5);
+      text-align: center;
+    }
+    
+    @keyframes titlePowerOn {
+      0% { opacity: 0; transform: scale(0.3); filter: blur(10px); }
+      30% { opacity: 1; transform: scale(1.1); filter: blur(0px); }
+      70% { opacity: 1; transform: scale(1); filter: blur(0px); }
+      100% { opacity: 0; transform: scale(1.2); filter: blur(5px); }
+    }
+    @keyframes titlePowerOff {
+      0% { opacity: 1; transform: scale(1); filter: blur(0px); }
+      50% { opacity: 0.8; transform: scale(1.1); }
+      100% { opacity: 0; transform: scale(0.1); filter: blur(15px); }
+    }
+
+    .play-power-on { animation: titlePowerOn 3s forwards ease-in-out; }
+    .play-power-off { animation: titlePowerOff 3s forwards ease-in-out; }
+
+    /* Lock Screen Modal */
+    #lockScreen {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(8, 9, 14, 0.96); backdrop-filter: blur(15px);
+      display: none; justify-content: center; align-items: center;
+      z-index: 9998; flex-direction: column; gap: 15px;
+    }
+    .lock-box {
+      background: #151824; border: 1px solid #00ffcc; padding: 25px;
+      border-radius: 12px; text-align: center; box-shadow: 0 0 25px rgba(0,255,204,0.3);
+      max-width: 320px; width: 90%;
+      transition: all 0.3s ease;
+    }
+    .lock-box h2 { color: #00ffcc; font-size: 1.2rem; margin-bottom: 12px; text-shadow: 0 0 8px rgba(0,255,204,0.4); }
+    .lock-box input {
+      width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #282d42;
+      background: #0a0c13; color: #fff; text-align: center; font-size: 1.1rem;
+      outline: none; margin-bottom: 12px; box-shadow: inset 0 0 8px rgba(0,0,0,0.5);
+      transition: all 0.3s ease;
+    }
+    .lock-box input:disabled {
+      background: #1a1f2e; color: #00ffcc; border-color: #00ffcc; cursor: not-allowed; opacity: 0.8;
+    }
+    .lock-box button {
+      width: 100%; padding: 10px; border-radius: 6px; border: none;
+      background: #00ffcc; color: #08090e; font-weight: bold; cursor: pointer;
+      font-size: 0.9rem; box-shadow: 0 0 10px rgba(0,255,204,0.4); transition: all 0.3s ease;
+    }
+    .lock-box button:disabled { background: #282d42; color: #8f9bb3; cursor: not-allowed; box-shadow: none; }
+    #lockError { color: #ff007f; font-size: 0.75rem; min-height: 15px; margin-top: 8px; text-shadow: 0 0 5px rgba(255,0,127,0.5); }
+
+    /* Analogue Timer Modal Window Style */
+    #timerModal {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(8, 9, 14, 0.85); backdrop-filter: blur(10px);
+      display: none; justify-content: center; align-items: center;
+      z-index: 10005; flex-direction: column;
+    }
+    .timer-box {
+      background: #151824; border: 1px solid #ffcc00; padding: 20px;
+      border-radius: 12px; text-align: center; box-shadow: 0 0 25px rgba(255,204,0,0.3);
+      max-width: 320px; width: 90%; display: flex; flex-direction: column; gap: 10px; align-items: center;
+    }
+    .timer-box h2 { color: #ffcc00; font-size: 1rem; text-shadow: 0 0 8px rgba(255,204,0,0.4); }
+
+    /* Analogue Clock Dial Container */
+    .analogue-clock-container {
+      position: relative; width: 150px; height: 150px;
+      background: radial-gradient(circle, #0a0c13 0%, #040507 100%);
+      border: 3px solid #ffcc00; border-radius: 50%;
+      box-shadow: inset 0 0 15px rgba(255,204,0,0.3), 0 0 15px rgba(255,204,0,0.2);
+      margin: 5px auto; cursor: grab;
+      touch-action: none;
+      user-select: none;
+    }
+    .analogue-clock-container.dragging { cursor: grabbing; }
+    .clock-center-dot {
+      position: absolute; top: 50%; left: 50%; width: 8px; height: 8px;
+      background: #ffcc00; border-radius: 50%; transform: translate(-50%, -50%); z-index: 10;
+      box-shadow: 0 0 6px #ffcc00;
+    }
+    /* Clock Needles */
+    .clock-hand {
+      position: absolute; bottom: 50%; left: 50%; transform-origin: bottom center; border-radius: 4px;
+      pointer-events: none;
+    }
+    .clock-hand::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: -12px;
+      width: 22px;
+      height: 22px;
+      transform: translateX(-50%);
+      border-radius: 50%;
+      background: transparent;
+      pointer-events: none;
+    }
+    .hour-hand {
+      width: 4px; height: 38px; background: #00ffcc; transform: translateX(-50%) rotate(0deg); z-index: 6;
+      box-shadow: 0 0 4px #00ffcc;
+    }
+    .minute-hand {
+      width: 2px; height: 52px; background: #ffcc00; transform: translateX(-50%) rotate(0deg); z-index: 8;
+      box-shadow: 0 0 4px #ffcc00;
+    }
+    .clock-number {
+      position: absolute; font-size: 0.65rem; color: #8f9bb3; font-weight: bold;
+    }
+
+    /* AM / PM Toggle Controls */
+    .ampm-container {
+      display: flex; gap: 10px; justify-content: center; align-items: center; margin: 2px 0;
+    }
+    .ampm-btn {
+      background: #0a0c13; border: 1px solid #282d42; color: #8f9bb3; padding: 4px 12px;
+      border-radius: 4px; font-size: 0.75rem; font-weight: bold; cursor: pointer; transition: all 0.2s ease;
+    }
+    .ampm-btn.active {
+      background: #ffcc00; color: #08090e; border-color: #ffcc00; box-shadow: 0 0 8px rgba(255,204,0,0.5);
+    }
+
+    /* Live Timer Display under AM/PM */
+    .live-timer-display {
+      font-size: 0.85rem; color: #00ffcc; font-weight: bold; letter-spacing: 1px;
+      text-shadow: 0 0 6px rgba(0,255,204,0.4); min-height: 18px;
+    }
+
+    .timer-btn-group { display: flex; gap: 8px; width: 100%; margin-top: 4px; }
+    .timer-box button.modal-action-btn {
+      flex: 1; padding: 8px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; font-size: 0.85rem;
+    }
+    .btn-set-timer { background: #ffcc00; color: #08090e; box-shadow: 0 0 10px rgba(255,204,0,0.4); }
+    .btn-close-timer { background: #282d42; color: #fff; }
+
+    @keyframes verifyingPulse {
+      0% { box-shadow: 0 0 10px rgba(0,255,204,0.3); border-color: #00ffcc; }
+      50% { box-shadow: 0 0 35px rgba(0,255,204,0.9); border-color: #00ffcc; transform: scale(1.02); }
+      100% { box-shadow: 0 0 10px rgba(0,255,204,0.3); border-color: #00ffcc; }
+    }
+    @keyframes shakeError {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-10px); }
+      40%, 80% { transform: translateX(10px); }
+    }
+
+    .verifying-anim { animation: verifyingPulse 1s infinite ease-in-out; }
+    .shake-anim { animation: shakeError 0.4s ease-in-out; border-color: #ff007f !important; }
+
+    /* App Layout */
+    .app-container {
+      width: 100%; height: 100%; padding: 10px;
+      display: flex; flex-direction: column; justify-content: space-between; gap: 8px;
+      position: relative;
+    }
+    
+   .top-bar { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      padding: 6px 8px; 
+      flex-shrink: 0; 
+      flex-wrap: wrap; 
+      gap: 8px; 
+      margin-top: 5px;
+    }
+    .top-bar::-webkit-scrollbar { display: none; }
+
+    .brand-header-box {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      flex: 0 0 auto;
+      white-space: nowrap;
+    }
+    .btn-power-off-top {
+      width: 32px; height: 32px; border-radius: 50%; background: #151824;
+      border: 1px solid #ff0055; color: #ff0055; font-size: 0.95rem; cursor: pointer;
+      display: flex; justify-content: center; align-items: center; transition: all 0.2s ease;
+      box-shadow: 0 0 8px rgba(255, 0, 85, 0.4);
+    }
+    .btn-power-off-top:hover { background: #ff0055; color: #fff; box-shadow: 0 0 15px #ff0055; }
+
+    .btn-lock-top {
+      width: 32px; height: 32px; border-radius: 50%; background: #151824;
+      border: 1px solid #00ffcc; color: #00ffcc; font-size: 0.95rem; cursor: pointer;
+      display: flex; justify-content: center; align-items: center; transition: all 0.2s ease;
+      box-shadow: 0 0 8px rgba(0, 255, 204, 0.4);
+    }
+    .btn-lock-top:hover { background: #00ffcc; color: #08090e; box-shadow: 0 0 15px #00ffcc; }
+
+    /* Real-Time Timer Button beside Lock Control */
+    .btn-timer-top {
+      height: 32px; padding: 0 10px; border-radius: 16px; background: #151824;
+      border: 1px solid #ffcc00; color: #ffcc00; font-size: 0.75rem; font-weight: bold; cursor: pointer;
+      display: flex; justify-content: center; align-items: center; gap: 6px; transition: all 0.2s ease;
+      box-shadow: 0 0 8px rgba(255, 204, 0, 0.3);
+    }
+    .btn-timer-top:hover { background: #ffcc00; color: #08090e; box-shadow: 0 0 15px #ffcc00; }
+
+    /* Google Script Device-ID based Block/Expiry Timer */
+    /* Google Script Device ID + Block Timer — bottom bar */
+    .device-remote-timer {
+      width: 100%;
+      min-height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      flex: 0 0 auto;
+      padding: 4px 8px;
+      border-top: 1px solid #282d42;
+      border-bottom: 1px solid #282d42;
+      border-radius: 6px;
+      background: rgba(10, 12, 19, 0.96);
+      font-size: 0.64rem;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow-x: auto;
+      scrollbar-width: none;
+      box-shadow: inset 0 0 8px rgba(0,0,0,.35);
+    }
+
+    .device-remote-timer::-webkit-scrollbar { display: none; }
+
+    .device-remote-timer .remote-device-id {
+      color: #00ffcc;
+      font-family: monospace;
+      font-weight: 700;
+      max-width: 34vw;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .device-remote-timer .remote-expiry-label {
+      color: #ffcc00;
+      font-weight: 700;
+    }
+
+    .device-remote-timer .remote-expiry-value {
+      color: #00ffcc;
+      font-family: monospace;
+      font-weight: 800;
+      min-width: 70px;
+      text-align: center;
+    }
+
+    .device-remote-timer.timer-active {
+      border-color: rgba(255,204,0,.55);
+      box-shadow: 0 0 10px rgba(255,204,0,.12), inset 0 0 8px rgba(0,0,0,.35);
+    }
+
+    .device-remote-timer.timer-expired {
+      border-color: #ff1744;
+      box-shadow: 0 0 12px rgba(255,23,68,.25);
+    }
+
+    .device-remote-timer.timer-expired .remote-expiry-value {
+      color: #ff1744;
+    }
+
+    .device-remote-timer.timer-none .remote-expiry-value {
+      color: #777;
+    }
+
+    h1 { color: #00ffcc; text-shadow: 0 0 12px rgba(0, 255, 204, 0.6); font-size: clamp(0.9rem, 2vw, 1.2rem); text-transform: uppercase; }
+    
+    .top-bar-btns {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-wrap: nowrap;
+      flex: 0 0 auto;
+      white-space: nowrap;
+    }
+
+    .top-bar-btns > * {
+      flex: 0 0 auto;
+      white-space: nowrap;
+    }
+
+    .switches-wrapper {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-wrap: nowrap;
+      flex: 0 0 auto;
+      white-space: nowrap;
+    }
+
+    .switches-wrapper > * {
+      flex: 0 0 auto;
+    }
+
+    .btn-capture {
+      background: #00ffcc; color: #0a0c13; border: none; padding: 6px 12px;
+      border-radius: 4px; font-size: 0.75rem; font-weight: bold; cursor: pointer;
+      box-shadow: 0 0 10px rgba(0, 255, 204, 0.5); transition: all 0.3s ease; display: none;
+    }
+    .btn-capture.active { background: #ff0055; color: #ffffff; box-shadow: 0 0 10px rgba(255, 0, 85, 0.7); }
+    
+    .btn-fullscreen {
+      background: #1e2436; color: #00ffcc; border: 1px solid #00ffcc; padding: 5px 10px;
+      border-radius: 4px; font-size: 0.75rem; font-weight: bold; cursor: pointer;
+      box-shadow: 0 0 6px rgba(0,255,204,0.2); transition: all 0.2s ease;
+    }
+    .btn-fullscreen:hover { background: #00ffcc; color: #08090e; box-shadow: 0 0 12px rgba(0,255,204,0.5); }
+
+    /* Echo Control Group with Checkbox Box */
+    .echo-control-group {
+      display: flex; gap: 6px; align-items: center; background: #151824; padding: 4px 8px; border-radius: 6px; border: 1px solid #282d42;
+      box-shadow: 0 0 8px rgba(0,0,0,0.4);
+    }
+    .echo-label { font-size: 0.65rem; color: #ffcc00; font-weight: bold; display: flex; align-items: center; gap: 4px; cursor: pointer; text-shadow: 0 0 5px rgba(255,204,0,0.4); }
+    .echo-checkbox {
+      width: 14px; height: 14px; accent-color: #ffcc00; cursor: pointer;
+    }
+    .echo-val-display { font-size: 0.65rem; color: #00ffcc; font-weight: bold; min-width: 30px; text-align: right; }
+    
+    input[type="range"].echo-slider {
+      -webkit-appearance: none; width: 80px; height: 5px; border-radius: 3px;
+      background: #0a0c13; border: 1px solid #282d42; outline: none;
+    }
+    input[type="range"].echo-slider::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 12px; height: 14px; border-radius: 3px;
+      background: #ffcc00; border: 1px solid #ffffff; cursor: pointer; box-shadow: 0 0 6px #ffcc00;
+    }
+
+    .switches-wrapper { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .source-switch-box {
+      display: flex; align-items: center; gap: 6px;
+      background: rgba(255, 204, 0, 0.08); border: 1px solid #ffcc00;
+      padding: 4px 8px; border-radius: 20px; box-shadow: 0 0 8px rgba(255, 204, 0, 0.15);
+    }
+    .source-switch-box.stereo-box { background: rgba(0, 255, 204, 0.08); border-color: #00ffcc; box-shadow: 0 0 8px rgba(0, 255, 204, 0.15); }
+    .source-switch-box label.title { font-size: 0.65rem; color: #ffcc00; font-weight: bold; text-shadow: 0 0 5px rgba(255,204,0,0.4); }
+    .source-switch-box.stereo-box label.title { color: #00ffcc; text-shadow: 0 0 5px rgba(0,255,204,0.4); }
+    
+    .switch { position: relative; display: inline-block; width: 38px; height: 20px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #444; transition: .3s; border-radius: 20px; border: 1px solid #888;
+    }
+    .slider:before {
+      position: absolute; content: ""; height: 14px; width: 14px; left: 2px; bottom: 2px;
+      background-color: white; transition: .3s; border-radius: 50%;
+    }
+    input:checked + .slider { background-color: #00ffcc; border-color: #00ffcc; box-shadow: 0 0 8px #00ffcc; }
+    input:checked + .slider:before { transform: translateX(18px); background-color: #0a0c13; }
+
+    /* Visualizer Container */
+    .visualizer-container {
+      position: relative;
+      width: 100%; height: 10vh; min-height: 70px;
+      background: #000000; border-radius: 10px; overflow: hidden;
+      flex-shrink: 0; padding: 2px; border: 1px solid #1a2233;
+      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.95), 0 0 20px rgba(0, 255, 204, 0.25);
+      transition: all 0.4s ease;
+      filter: drop-shadow(0 0 8px rgba(0, 255, 204, 0.3));
+    }
+
+    canvas { width: 100%; height: 100%; display: block; }
+
+    /* Controls Elements Wrapper */
+    .controls-wrapper {
+      display: flex; flex-direction: column; gap: 8px; flex: 1; min-height: 0;
+    }
+
+    .players-wrapper { display: flex; gap: 10px; width: 100%; flex: 1; min-height: 0; transition: all 0.4s ease; }
+    .player-card {
+      flex: 1; background: rgba(21, 24, 36, 0.85); backdrop-filter: blur(8px);
+      padding: 8px 12px; border-radius: 10px; border: 1px solid #282d42;
+      display: flex; flex-direction: column; justify-content: center; gap: 6px; min-width: 0;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), inset 0 0 10px rgba(255, 255, 255, 0.02);
+    }
+    .player-card.p1 { box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), 0 0 12px rgba(255, 0, 127, 0.15); border-color: rgba(255,0,127,0.3); }
+    .player-card.p2 { box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), 0 0 12px rgba(0, 191, 255, 0.15); border-color: rgba(0,191,255,0.3); }
+    
+    .player-card.p1 h3 { color: #ff007f; font-size: clamp(0.85rem, 1.8vw, 1.1rem); display: flex; justify-content: space-between; text-shadow: 0 0 6px rgba(255,0,127,0.4); }
+    .player-card.p2 h3 { color: #00bfff; font-size: clamp(0.85rem, 1.8vw, 1.1rem); display: flex; justify-content: space-between; text-shadow: 0 0 6px rgba(0,191,255,0.4); }
+    
+    .file-input-wrapper { position: relative; width: 100%; }
+    
+    input[type="file"] {
+      display: block; width: 100%; color: #b0b9d0; font-size: 0.75rem;
+      background: #0a0c13; padding: 6px; border-radius: 6px; border: 1px solid #282d42; cursor: pointer;
+    }
+    
+    .folder-mode-input::-webkit-file-upload-button { visibility: hidden; width: 0; }
+    .folder-mode-input::before {
+      content: 'Choose Folder'; display: inline-block; background: #1e2436;
+      border: 1px solid #00ffcc; border-radius: 4px; padding: 2px 6px;
+      outline: none; white-space: nowrap; cursor: pointer; color: #00ffcc;
+      font-weight: bold; font-size: 0.7rem; margin-right: 8px; box-shadow: 0 0 6px rgba(0,255,204,0.3);
+    }
+
+    audio { width: 100%; height: 28px; filter: drop-shadow(0 0 4px rgba(0,255,204,0.2)); }
+
+    .btn-reset-deck {
+      display: none; width: 100%; background: #00ffcc; color: #08090e;
+      border: none; padding: 6px; border-radius: 6px; font-size: 0.75rem;
+      font-weight: bold; cursor: pointer; text-align: center;
+      box-shadow: 0 0 10px rgba(0, 255, 204, 0.4); margin-bottom: 2px;
+      transition: all 0.2s ease;
+    }
+    .btn-reset-deck:hover { background: #00e6b8; box-shadow: 0 0 15px rgba(0, 255, 204, 0.7); }
+
+    /* Custom Folder Playlist UI */
+    .folder-controls { display: none; align-items: stretch; justify-content: space-between; gap: 6px; }
+    .folder-nav-btn {
+      background: #1e2436; color: #00ffcc; border: 1px solid #00ffcc; padding: 4px 8px;
+      border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: bold; height: auto;
+      box-shadow: 0 0 6px rgba(0,255,204,0.2); transition: all 0.2s ease;
+    }
+    .folder-nav-btn:hover { background: #00ffcc; color: #08090e; box-shadow: 0 0 12px rgba(0,255,204,0.6); }
+    
+    .folder-playlist-container {
+      flex: 1; background: #0a0c13; border: 1px solid #282d42;
+      border-radius: 4px; max-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; padding: 2px;
+      scroll-behavior: smooth; box-shadow: inset 0 0 8px rgba(0,0,0,0.8);
+    }
+    .playlist-item {
+      display: flex; align-items: center; justify-content: space-between; background: #131722;
+      border: 1px solid #1a2233; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; color: #b0b9d0;
+      transition: all 0.2s ease;
+    }
+    .playlist-item:hover { background: #1b2233; color: #fff; }
+    .playlist-item.active { background: rgba(0, 255, 204, 0.15); border-color: #00ffcc; color: #00ffcc; font-weight: bold; box-shadow: 0 0 6px rgba(0,255,204,0.2); }
+    .playlist-item.dragging { opacity: 0.4; border: 1px dashed #00ffcc; }
+    .drag-handle { cursor: grab; margin-right: 6px; color: #00ffcc; font-size: 0.8rem; padding: 0 4px; }
+
+    .crossfader-card {
+      background: rgba(21, 24, 36, 0.85); padding: 6px 14px; border-radius: 10px;
+      border: 1px solid #282d42; text-align: center; flex-shrink: 0; transition: all 0.4s ease;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), 0 0 12px rgba(0, 255, 204, 0.1);
+    }
+    .crossfader-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; }
+    .crossfader-header h3 { font-size: clamp(0.8rem, 1.3vw, 0.95rem); color: #00ffcc; text-shadow: 0 0 6px rgba(0,255,204,0.4); }
+    .fader-labels { display: flex; justify-content: space-between; font-weight: bold; font-size: 0.7rem; margin-bottom: 2px; }
+    .fader-labels .p1-lbl { color: #ff007f; text-shadow: 0 0 4px rgba(255,0,127,0.3); }
+    .fader-labels .center-lbl { color: #8f9bb3; font-size: 0.65rem; }
+    .fader-labels .p2-lbl { color: #00bfff; text-shadow: 0 0 4px rgba(0,191,255,0.3); }
+
+    input[type="range"].crossfader {
+      -webkit-appearance: none; width: 100%; height: 8px; border-radius: 6px;
+      background: linear-gradient(90deg, #ff007f 0%, #1a1e2e 50%, #00bfff 100%);
+      border: 1px solid #282d42; outline: none; box-shadow: inset 0 0 5px rgba(0,0,0,0.8);
+    }
+    input[type="range"].crossfader::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 18px; height: 20px; border-radius: 3px;
+      background: #ffffff; border: 2px solid #00ffcc; cursor: pointer; box-shadow: 0 0 10px #00ffcc;
+    }
+
+    .eq-container {
+      background: rgba(21, 24, 36, 0.85); padding: 8px 10px; border-radius: 10px;
+      border: 1px solid #282d42; flex-shrink: 0; height: 38vh; display: flex; flex-direction: column; gap: 8px;
+      transition: all 0.4s ease; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), 0 0 15px rgba(0, 255, 204, 0.08);
+    }
+    .eq-channel { flex: 1; display: flex; flex-direction: column; min-height: 0; transition: all 0.3s ease; }
+    .eq-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px; }
+    .eq-header h2 { color: #00ffcc; font-size: clamp(0.7rem, 1.1vw, 0.8rem); text-transform: uppercase; text-shadow: 0 0 6px rgba(0,255,204,0.4); }
+    .eq-header h2.left-title { color: #ff007f; text-shadow: 0 0 6px rgba(255,0,127,0.4); }
+    .eq-header h2.right-title { color: #00bfff; text-shadow: 0 0 6px rgba(0,191,255,0.4); }
+    
+    .drive-btn-group { display: flex; gap: 4px; align-items: center; position: relative; }
+    .preset-wrapper { position: relative; width: 130px; height: 24px; }
+
+    .preset-select {
+      position: absolute; top: 0; left: 0; width: 100%; background: #0a0c13; color: #00ffcc;
+      border: 1px solid #282d42; padding: 2px 4px; border-radius: 4px; font-size: 0.65rem;
+      outline: none; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    }
+    .preset-select:focus { border-color: #00ffcc; box-shadow: 0 0 8px rgba(0,255,204,0.4); }
+    .preset-select option { padding: 4px; background: #0a0c13; color: #00ffcc; }
+    
+    .btn-drive {
+      background: #1e2436; color: #00ffcc; border: 1px solid #00ffcc; padding: 2px 6px;
+      border-radius: 4px; font-size: 0.6rem; cursor: pointer; font-weight: bold; height: 24px;
+      box-shadow: 0 0 6px rgba(0,255,204,0.2); transition: all 0.2s ease;
+    }
+    .btn-drive:hover { background: #00ffcc; color: #08090e; box-shadow: 0 0 10px rgba(0,255,204,0.6); }
+    .btn-drive:disabled { opacity: 0.4; cursor: not-allowed; background: #1e2436; color: #8f9bb3; border-color: #282d42; box-shadow: none; }
+
+    .eq-sliders { display: flex; gap: 2px; overflow-x: auto; flex: 1; align-items: center; }
+    .slider-group { display: flex; flex-direction: column; align-items: center; min-width: 14px; height: 100%; justify-content: space-between; flex: 1; }
+    .slider-group span { font-size: 0.45rem; color: #8f9bb3; }
+    .slider-group input[type="range"] {
+      -webkit-appearance: none; writing-mode: bt-lr; appearance: slider-vertical;
+      width: 4px; height: 60%; background: #0e1017; border-radius: 2px; outline: none; border: 1px solid #282d42;
+      box-shadow: inset 0 0 4px rgba(0,0,0,0.8);
+      touch-action: none;
+    }
+    .slider-group input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 100%; height: 8px; border-radius: 2px; background: #00ffcc; border: 1px solid #ffffff;
+      box-shadow: 0 0 6px #00ffcc;
+    }
+
+    /* Floating Large RGB Ring Light Unlock Button Container */
+    #rgbLockContainer {
+      display: none;
+      position: fixed;
+      top: 80%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 130px; height: 130px;
+      justify-content: center; align-items: center;
+      z-index: 500;
+      flex-direction: column;
+      gap: 10px;
+      cursor: pointer;
+    }
+
+    .rgb-orbit-ring {
+      position: absolute;
+      width: 100%; height: 100%;
+      border-radius: 50%;
+      pointer-events: none;
+      animation: rgbRotate 2s linear infinite;
+      box-shadow: 0 0 25px rgba(0, 255, 204, 0.2);
+    }
+
+    .rgb-dot {
+      position: absolute;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      box-shadow: 0 0 15px currentColor;
+    }
+    .rgb-dot:nth-child(1) { top: -6px; left: 50%; transform: translateX(-50%); background: #ff0055; color: #ff0055; }
+    .rgb-dot:nth-child(2) { bottom: -6px; left: 50%; transform: translateX(-50%); background: #00ffcc; color: #00ffcc; }
+    .rgb-dot:nth-child(3) { left: -6px; top: 50%; transform: translateY(-50%); background: #ffcc00; color: #ffcc00; }
+    .rgb-dot:nth-child(4) { right: -6px; top: 50%; transform: translateY(-50%); background: #00bfff; color: #00bfff; }
+
+    @keyframes rgbRotate {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .btn-large-unlock {
+      width: 90px; height: 90px; border-radius: 50%;
+      background: #08090e; border: 2px solid #00ffcc;
+      color: #00ffcc; font-size: 2.2rem; cursor: pointer;
+      display: flex; justify-content: center; align-items: center;
+      box-shadow: 0 0 20px rgba(0, 255, 204, 0.5), inset 0 0 10px rgba(0,255,204,0.3);
+      z-index: 2; transition: all 0.3s ease;
+    }
+    .btn-large-unlock:hover {
+      background: #00ffcc; color: #08090e; transform: scale(1.08);
+      box-shadow: 0 0 35px rgba(0, 255, 204, 0.9), inset 0 0 15px rgba(0,0,0,0.5);
+    }
+    .unlock-hint-text {
+      font-size: 0.75rem; color: #00ffcc; font-weight: bold; letter-spacing: 1px;
+      text-transform: uppercase; text-shadow: 0 0 8px #00ffcc;
+    }
+
+    body.screen-locked .top-bar,
+    body.screen-locked .controls-wrapper {
+      display: none !important;
+    }
+    body.screen-locked .visualizer-container {
+      height: 60vh !important;
+      border-radius: 0 0 15px 15px;
+      border: 1px solid #00ffcc;
+      box-shadow: 0 0 30px rgba(0, 255, 204, 0.3);
+    }
+    body.screen-locked #rgbLockContainer {
+      display: flex;
+    }
+
+    @media (max-width: 600px) {
+      .players-wrapper { flex-direction: column; }
+      .eq-container { height: 42vh; }
+      .switches-wrapper { width: 100%; justify-content: space-between; }
+    }
+  
+    /* Bottom contact + device status */
+    .bottom-contact-status {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex: 0 0 auto;
+      min-height: 31px;
+      padding: 3px 6px;
+      border-top: 1px solid #282d42;
+      background: rgba(5,7,12,.96);
+      overflow-x: auto;
+      white-space: nowrap;
+      scrollbar-width: none;
+    }
+
+    .bottom-contact-status::-webkit-scrollbar { display: none; }
+
+    .suraj-contact-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+      padding: 6px 12px;
+      border: 1px solid #00ffcc;
+      border-radius: 16px;
+      background: rgba(0,255,204,.06);
+      color: #00ffcc;
+      text-decoration: none;
+      font-size: 10px;
+      font-weight: 700;
+      white-space: nowrap;
+      box-shadow: 0 0 8px rgba(0,255,204,.16);
+    }
+
+    .bottom-device-info {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      flex: 0 0 auto;
+      font-size: 9px;
+      white-space: nowrap;
+    }
+
+    .bottom-label {
+      color: #8f9bb3;
+      font-weight: 700;
+    }
+
+    .bottom-device-info .remote-device-id {
+      color: #00ffcc;
+      font-family: monospace;
+      font-weight: 800;
+      max-width: 260px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .bottom-device-info .remote-expiry-value {
+      color: #ffcc00;
+      font-family: monospace;
+      font-weight: 800;
+      min-width: 70px;
+      text-align: center;
+    }
+
+    @media (max-width: 600px) {
+      .top-bar {
+        justify-content: flex-start;
+      }
+
+      .top-bar button {
+        font-size: 10px;
+      }
+
+      .bottom-contact-status {
+        justify-content: flex-start;
+        gap: 7px;
+      }
+
+      .suraj-contact-btn {
+        font-size: 8px;
+        padding: 5px 9px;
+      }
+
+      .bottom-device-info {
+        font-size: 8px;
+      }
+
+      .bottom-device-info .remote-device-id {
+        max-width: 145px;
+      }
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- Power Screen -->
+  <div id="powerScreen">
+    <button class="power-btn-main" id="mainPowerBtn" onclick="requestPowerOn()"><i class="fa-solid fa-power-off"></i></button>
+    <div class="power-text-hint" id="powerHintText">PRESS TO POWER ON</div>
+  </div>
+
+  <!-- Intro Animation Screen -->
+  <div id="introAnimationScreen">
+    <div class="animated-title" id="animatedTitle">Audio DJ Console</div>
+    <div class="animated-subtitle" id="animatedSubtitle">Powered by Coding Master Suraj</div>
+  </div>
+
+  <!-- Lock Screen Overlay -->
+  <div id="lockScreen">
+    <div class="lock-box" id="lockBox">
+      <h2>🔒 Admin Approval Required</h2>
+      <p id="approvalMsg" style="font-size:0.8rem;color:#00ffcc;margin-bottom:10px;">
+        Please enter your password to unlock.
+      </p>
+      <input type="password" id="passInput" placeholder="Type password..."
+             oninput="clearLockError()"
+             onkeydown="if(event.key==='Enter') unlockSystem()">
+      <button id="unlockBtn" onclick="unlockSystem()">UNLOCK</button>
+      <div id="lockError"></div>
+    </div>
+  </div>
+<!-- Analogue Timer Modal Window -->
+    <div id="timerModal">
+      <div class="timer-box">
+        <h2><i class="fa-solid fa-clock"></i> Auto Power-Off Timer</h2>
+        <div id="timerModeHint" style="font-size:0.7rem;color:#8f9bb3;min-height:16px;">
+          Drag HOUR or MINUTE hand smoothly
+        </div>
+        
+        <!-- Analogue Clock Dial -->
+        <div class="analogue-clock-container" id="clockDial" onclick="handleClockDialClick(event)">
+          <div class="clock-center-dot"></div>
+          <div class="clock-hand hour-hand" id="hourHand"></div>
+          <div class="clock-hand minute-hand" id="minuteHand"></div>
+          <div class="clock-number" style="top:4px; left:50%; transform:translateX(-50%);">12</div>
+          <div class="clock-number" style="right:6px; top:50%; transform:translateY(-50%);">3</div>
+          <div class="clock-number" style="bottom:4px; left:50%; transform:translateX(-50%);">6</div>
+          <div class="clock-number" style="left:6px; top:50%; transform:translateY(-50%);">9</div>
+        </div>
+
+        <!-- AM / PM Buttons -->
+        <div class="ampm-container">
+          <button class="ampm-btn active" id="btnAM" onclick="setAmPm('AM')">AM</button>
+          <button class="ampm-btn" id="btnPM" onclick="setAmPm('PM')">PM</button>
+        </div>
+
+        <!-- Live Set Timer Display -->
+        <div class="live-timer-display" id="liveTimerDisplay">Select Hour: 12:00 AM</div>
+
+        <!-- Set, Off and Close Buttons -->
+        <div class="timer-btn-group">
+          <button class="modal-action-btn btn-set-timer" onclick="setConsoleTimer()">SET</button>
+          <button class="modal-action-btn" id="btnOffTimer" style="background:#ff0055; color:#fff;" onclick="cancelConsoleTimer()">OFF</button>
+          <button class="modal-action-btn btn-close-timer" onclick="closeTimerModal()">CLOSE</button>
+        </div>
+        <!-- Device Status & Expiry Time Display -->
+<div id="deviceTimerStatus" style="font-size:0.75rem; color:#ffcc00; margin-top:6px; text-align:center; min-height:20px; text-shadow: 0 0 5px rgba(255,204,0,0.4);">
+  Google Timer: <span id="statusDeviceName" style="color:#00ffcc;">Loading...</span> | Remaining: <span id="statusExpiryTime" style="color:#ff007f;">Checking...</span>
+</div>
+      </div>
+    </div>
+    
+  <div class="app-container">
+    <!-- Top Header Bar -->
+    <div class="top-bar">
+      <div class="brand-header-box">
+        <button class="btn-power-off-top" title="Power Off System" onclick="powerOffSystem()"><i class="fa-solid fa-power-off"></i></button>
+        <h1>Audio DJ Console</h1>
+        <button class="btn-lock-top" title="Lock System Controls" onclick="lockConsoleUI()"><i class="fa-solid fa-lock"></i></button>
+        <!-- Real-Time Timer Button -->
+        <button class="btn-timer-top" id="timerBtn" title="Set Auto Power Off Timer" onclick="openTimerModal()">
+          <i class="fa-solid fa-clock"></i> <span id="realtimeTimerDisplay">--:--</span>
+        </button>
+
+      </div>
+      
+      <div class="top-bar-btns">
+        <button class="btn-capture" id="tabAudioBtn" onclick="toggleTabAudio()">🎵 Link Chrome Tab</button>
+        <button class="btn-fullscreen" id="fullscreenBtn" onclick="toggleFullscreen()">⛶ Fullscreen</button>
+        
+        <!-- Echo Control Group with Checkbox Box -->
+        <div class="echo-control-group">
+          <label class="echo-label" for="echoCheckbox">
+            <input type="checkbox" id="echoCheckbox" class="echo-checkbox" onchange="toggleEchoCheckbox(this)"> ECHO:
+          </label>
+          <input type="range" id="echoSlider" class="echo-slider" min="0" max="100" value="0" step="1" oninput="updateEchoFromSlider(this.value)">
+          <span class="echo-val-display" id="echoValText">0%</span>
+        </div>
+      </div>
+
+      <div class="switches-wrapper">
+        <div class="source-switch-box">
+          <label class="title">LINK CHROME TAB</label>
+          <label class="title" id="tabAudioLabelBefore">OFF</label>
+          <label class="switch">
+            <input type="checkbox" id="tabAudioToggle">
+            <span class="slider"></span>
+          </label>
+          <label class="title" id="tabAudioLabelAfter" style="display:none;">ON</label>
+        </div>
+
+        <div class="source-switch-box">
+          <label class="title">DECK</label>
+          <label class="title" id="fileAudioLabelBefore">FILE</label>
+          <label class="switch">
+            <input type="checkbox" id="fileAudioToggle" checked>
+            <span class="slider"></span>
+          </label>
+          <label class="title" id="fileAudioLabelAfter" style="display:none;">FOLDER</label>
+        </div>
+
+        <div class="source-switch-box stereo-box">
+          <label class="title">MASTER EQUALIZER</label>
+          <label class="title" id="stereoLabelBefore">STEREO</label>
+          <label class="switch">
+            <input type="checkbox" id="stereoToggle" checked>
+            <span class="slider"></span>
+          </label>
+          <label class="title" id="stereoLabelAfter" style="display:none;">MONO</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Visualizer Container -->
+    <div class="visualizer-container">
+      <canvas id="canvas"></canvas>
+    </div>
+
+    <!-- Large RGB Ring Light Unlock Button Box -->
+    <div id="rgbLockContainer" onclick="openUnlockPrompt()">
+      <div class="rgb-orbit-ring">
+        <div class="rgb-dot"></div>
+        <div class="rgb-dot"></div>
+        <div class="rgb-dot"></div>
+        <div class="rgb-dot"></div>
+      </div>
+      <button class="btn-large-unlock" title="Click to Unlock"><i class="fa-solid fa-lock"></i></button>
+      <div class="unlock-hint-text">TAP TO UNLOCK</div>
+    </div>
+
+    <!-- Console Controls Wrapper -->
+    <div class="controls-wrapper">
+      <div class="players-wrapper">
+        <div class="player-card p1" id="deck1Card">
+          <h3><span id="deck1Title">Deck Audio File Player 1</span> <span id="volVal1">100%</span></h3>
+          <div class="file-input-wrapper">
+            <input type="file" id="file1" accept="audio/*">
+          </div>
+          <button id="resetDeck1Btn" class="btn-reset-deck" onclick="resetDeck(1)">➕ Add New File</button>
+          
+          <div class="folder-controls" id="folderControls">
+            <button class="folder-nav-btn" onclick="playPrevTrack()">⏮</button>
+            <div class="folder-playlist-container" id="folderPlaylistContainer"></div>
+            <button class="folder-nav-btn" onclick="playNextTrack()">⏭</button>
+          </div>
+
+          <audio id="audio1" controls></audio>
+        </div>
+        
+        <div class="player-card p2" id="deck2Card">
+          <h3><span id="deck2Title">Deck Audio File Player 2</span> <span id="volVal2">100%</span></h3>
+          <input type="file" id="file2" accept="audio/*">
+          <button id="resetDeck2Btn" class="btn-reset-deck" onclick="resetDeck(2)">➕ Add New File</button>
+          <audio id="audio2" controls></audio>
+        </div>
+      </div>
+
+      <div class="crossfader-card" id="crossfaderCard">
+        <div class="crossfader-header">
+          <h3>Crossfader</h3>
+          <span id="crossfaderStatus" style="font-size:0.75rem; color:#00ffcc;">Center</span>
+        </div>
+        <div class="fader-labels">
+          <span class="p1-lbl">◀ Deck Audio File Player 1</span>
+          <span class="center-lbl">MIX</span>
+          <span class="p2-lbl">Deck Audio File Player 2 ▶</span>
+        </div>
+        <input type="range" id="crossfader" class="crossfader" min="0" max="100" value="50" step="1" oninput="updateCrossfader()">
+      </div>
+
+      <div class="eq-container">
+        <div class="eq-channel" id="leftEqChannel">
+          <div class="eq-header">
+            <h2 class="left-title" id="leftEqTitle">Left Channel EQ</h2>
+            <div class="drive-btn-group">
+              <div class="preset-wrapper">
+                <select id="presetListLeft" class="preset-select" onfocus="this.size=6;" onblur="this.size=1;" onchange="this.size=1; this.blur(); loadSelectedPreset('left');">
+                  <option value="" disabled selected>-- Select Preset --</option>
+                </select>
+              </div>
+              <button class="btn-drive" id="saveBtnLeft" onclick="savePresetToDrive('left')" disabled>💾 Save</button>
+            </div>
+          </div>
+          <div class="eq-sliders" id="eqSlidersLeft"></div>
+        </div>
+        
+        <div class="eq-channel" id="rightEqChannel">
+          <div class="eq-header">
+            <h2 class="right-title">Right Channel EQ</h2>
+            <div class="drive-btn-group">
+              <div class="preset-wrapper">
+                <select id="presetListRight" class="preset-select" onfocus="this.size=6;" onblur="this.size=1;" onchange="this.size=1; this.blur(); loadSelectedPreset('right');">
+                  <option value="" disabled selected>-- Select Preset --</option>
+                </select>
+              </div>
+              <button class="btn-drive" id="saveBtnRight" onclick="savePresetToDrive('right')" disabled>💾 Save</button>
+            </div>
+          </div>
+          <div class="eq-sliders" id="eqSlidersRight"></div>
+        </div>
+      </div>
+    <!-- Bottom Device / Contact Status -->
+    <div class="bottom-contact-status device-remote-timer timer-none" id="deviceRemoteTimerBar">
+      <a
+        href="https://coding-master-suraj.github.io/hacker/"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="suraj-contact-btn"
+      >👤 Powered  by Coding Master Suraj</a>
+
+      <div class="bottom-device-info">
+        <span class="bottom-label">DEVICE ID:</span>
+        <span class="remote-device-id" id="remoteDeviceIdDisplay">Loading...</span>
+      </div>
+
+      <div class="bottom-device-info">
+        <span class="bottom-label timer-label">BLOCK TIMER:</span>
+        <span class="remote-expiry-value" id="remoteExpiryDisplay">Checking...</span>
+      </div>
+    </div>
+
+    </div>
+  </div>
+
+  <script>
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwfOkCA0sLgqvtlZ8iOpKb6iBS6aWgqBhnCmIbtIxQ8LxaYr7toI5nV6CrX8GvyfQir/exec";
+    const ADMIN_APPROVAL_GAS_URL = "https://script.google.com/macros/s/AKfycbwfOkCA0sLgqvtlZ8iOpKb6iBS6aWgqBhnCmIbtIxQ8LxaYr7toI5nV6CrX8GvyfQir/exec";
+    const PRESET_GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwfOkCA0sLgqvtlZ8iOpKb6iBS6aWgqBhnCmIbtIxQ8LxaYr7toI5nV6CrX8GvyfQir/exec";
+
+    let currentPassword = "";
+    let approvalPollTimer = null;
+    let powerRequestInProgress = false;
+    let delayNode = null; 
+    let echoGainNode = null;
+    let powerSoundContext = null;
+    let powerSoundOscillator = null;
+    let powerSoundGain = null;
+    let introStarted = false;
+    let accessApproved = false;
+    let accessMonitorTimer = null;
+    let heartbeatTimer = null;
+    let remoteBlockHandled = false;
+
+    // Timer controlled by Google Apps Script for this exact deviceId.
+    let remoteExpiryTimestamp = null;
+    let remoteExpiryTick = null;
+
+    let selectedTimerHour = 12;
+    let selectedTimerMinute = 0;
+    let selectedTimerAmPm = 'AM';
+    let targetAlarmTimestamp = null;
+    let timerSelectionMode = 'hour';
+    let timerTick = null;
+
+    let deviceId = localStorage.getItem('dj_device_id');
+    if (!deviceId) {
+      deviceId = 'DEV_' + Math.random().toString(36).slice(2) + Date.now();
+      localStorage.setItem('dj_device_id', deviceId);
+    }
+
+    function getSelected24Hour() {
+      let h = Number(selectedTimerHour) || 12;
+      if (selectedTimerAmPm === 'PM' && h < 12) h += 12;
+      if (selectedTimerAmPm === 'AM' && h === 12) h = 0;
+      return h;
+    }
+
+    function formatTimerTime() {
+      return `${String(selectedTimerHour).padStart(2, '0')}:${String(selectedTimerMinute).padStart(2, '0')} ${selectedTimerAmPm}`;
+    }
+
+    function openTimerModal() {
+      document.getElementById('timerModal').style.display = 'flex';
+      const now = new Date();
+      let h = now.getHours();
+      selectedTimerAmPm = h >= 12 ? 'PM' : 'AM';
+      selectedTimerHour = h % 12 || 12;
+      selectedTimerMinute = now.getMinutes();
+      timerSelectionMode = 'hour';
+      updateAmPmButtons();
+      updateClockHandsDisplay();
+      updateTimerModeText();
+    }
+
+    function closeTimerModal() {
+      document.getElementById('timerModal').style.display = 'none';
+    }
+
+    function updateAmPmButtons() {
+      document.getElementById('btnAM').classList.toggle('active', selectedTimerAmPm === 'AM');
+      document.getElementById('btnPM').classList.toggle('active', selectedTimerAmPm === 'PM');
+    }
+
+    function setAmPm(ampm) {
+      selectedTimerAmPm = ampm;
+      updateAmPmButtons();
+      updateClockHandsDisplay();
+    }
+
+    function updateTimerModeText() {
+      const display = document.getElementById('liveTimerDisplay');
+      if (!display) return;
+      const modeHint = document.getElementById('timerModeHint');
+      if (modeHint) {
+        modeHint.innerText = timerSelectionMode === 'hour' ? 'Tap dial: HOUR → MINUTE' : 'Drag the selected hand to adjust';
+      }
+      if (targetAlarmTimestamp) {
+        const remain = Math.max(0, targetAlarmTimestamp - Date.now());
+        display.innerText = `Timer: ${formatRemainingTime(remain)} left`;
+      } else {
+        display.innerText = timerSelectionMode === 'hour' ? `Select Hour: ${formatTimerTime()}` : `Select Minute: ${formatTimerTime()}`;
+      }
+    }
+
+    let clockDragging = false;
+    let draggedHand = null;
+
+    function getClockAngleFromPointer(event) {
+      const dial = document.getElementById('clockDial');
+      const rect = dial.getBoundingClientRect();
+      const x = event.clientX - (rect.left + rect.width / 2);
+      const y = event.clientY - (rect.top + rect.height / 2);
+      let angle = Math.atan2(y, x) * 180 / Math.PI + 90;
+      if (angle < 0) angle += 360;
+      return angle;
+    }
+
+    function circularDistance(a, b) {
+      const d = Math.abs(a - b) % 360;
+      return Math.min(d, 360 - d);
+    }
+
+    function detectClockHand(angle) {
+      const hourAngle = ((selectedTimerHour % 12) * 30) + (selectedTimerMinute / 60) * 30;
+      const minuteAngle = selectedTimerMinute * 6;
+      if (circularDistance(angle, minuteAngle) <= 22) return 'minute';
+      if (circularDistance(angle, hourAngle) <= 18) return 'hour';
+      return timerSelectionMode === 'minute' ? 'minute' : 'hour';
+    }
+
+    function updateFromClockAngle(angle, hand) {
+      if (hand === 'minute') {
+        let minute = Math.round(angle / 6) % 60;
+        selectedTimerMinute = minute;
+        timerSelectionMode = 'hour';
+      } else {
+        let rawHour = angle / 30;
+        let hour = Math.round(rawHour) % 12;
+        selectedTimerHour = hour === 0 ? 12 : hour;
+        timerSelectionMode = 'minute';
+      }
+      updateClockHandsDisplay();
+      updateTimerModeText();
+    }
+
+    function startClockDrag(event) {
+      event.preventDefault();
+      const dial = document.getElementById('clockDial');
+      clockDragging = true;
+      draggedHand = detectClockHand(getClockAngleFromPointer(event));
+      dial.classList.add('dragging');
+      if (dial.setPointerCapture) {
+        try { dial.setPointerCapture(event.pointerId); } catch (e) {}
+      }
+      updateFromClockAngle(getClockAngleFromPointer(event), draggedHand);
+    }
+
+    function moveClockDrag(event) {
+      if (!clockDragging) return;
+      event.preventDefault();
+      updateFromClockAngle(getClockAngleFromPointer(event), draggedHand);
+    }
+
+    function endClockDrag(event) {
+      if (!clockDragging) return;
+      clockDragging = false;
+      draggedHand = null;
+      const dial = document.getElementById('clockDial');
+      dial.classList.remove('dragging');
+      if (dial.releasePointerCapture) {
+        try { dial.releasePointerCapture(event.pointerId); } catch (e) {}
+      }
+    }
+
+    function handleClockDialClick(event) {
+      if (!clockDragging) {
+        const angle = getClockAngleFromPointer(event);
+        const hand = detectClockHand(angle);
+        updateFromClockAngle(angle, hand);
+      }
+    }
+
+    function initSmoothClockControl() {
+      const dial = document.getElementById('clockDial');
+      if (!dial || dial.dataset.smoothReady === '1') return;
+      dial.dataset.smoothReady = '1';
+      dial.addEventListener('pointerdown', startClockDrag);
+      dial.addEventListener('pointermove', moveClockDrag);
+      dial.addEventListener('pointerup', endClockDrag);
+      dial.addEventListener('pointercancel', endClockDrag);
+      dial.addEventListener('pointerleave', moveClockDrag);
+    }
+
+    function updateClockHandsDisplay() {
+      const hourDeg = ((selectedTimerHour % 12) * 30) + (selectedTimerMinute / 60) * 30;
+      const minuteDeg = selectedTimerMinute * 6;
+      document.getElementById('hourHand').style.transform = `translateX(-50%) rotate(${hourDeg}deg)`;
+      document.getElementById('minuteHand').style.transform = `translateX(-50%) rotate(${minuteDeg}deg)`;
+      if (!targetAlarmTimestamp) {
+        updateTimerModeText();
+      }
+    }
+
+    function formatRemainingTime(ms) {
+      const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
+      const days = Math.floor(totalSeconds / 86400);
+      const hours = Math.floor((totalSeconds % 86400) / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+      if (days > 0) {
+        return `${days}d ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+      }
+      return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+
+    function setConsoleTimer() {
+      const now = new Date();
+      const h24 = getSelected24Hour();
+      let target = new Date(now);
+      target.setHours(h24, selectedTimerMinute, 0, 0);
+      if (target.getTime() <= now.getTime()) {
+        target.setDate(target.getDate() + 1);
+      }
+      if (target.getTime() - now.getTime() < 2000) {
+        target.setTime(now.getTime() + 2000);
+      }
+      targetAlarmTimestamp = target.getTime();
+      const display = document.getElementById('liveTimerDisplay');
+      if (display) {
+        display.innerText = `Timer set: ${formatTimerTime()}`;
+      }
+      closeTimerModal();
+      updateTimerButton();
+    }
+
+    function cancelConsoleTimer() {
+      targetAlarmTimestamp = null;
+      updateTimerButton();
+      const display = document.getElementById('liveTimerDisplay');
+      if (display) display.innerText = 'Timer: Off';
+    }
+
+    function updateTimerButton() {
+      const displayElem = document.getElementById('realtimeTimerDisplay');
+      if (!displayElem) return;
+      if (!targetAlarmTimestamp) {
+        const now = new Date();
+        displayElem.innerText = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+        return;
+      }
+      const remaining = targetAlarmTimestamp - Date.now();
+      if (remaining <= 0) {
+        displayElem.innerText = '00:00:00';
+        return;
+      }
+      displayElem.innerText = formatRemainingTime(remaining);
+    }
+
+    function runTimerTick() {
+      updateTimerButton();
+      if (!targetAlarmTimestamp) return;
+      const remaining = targetAlarmTimestamp - Date.now();
+      if (remaining <= 0) {
+        targetAlarmTimestamp = null;
+        updateTimerButton();
+        try { powerOffSystem(); } catch (e) {}
+      }
+    }
+
+    timerTick = setInterval(runTimerTick, 250);
+    runTimerTick();
+    initSmoothClockControl();
+
+    let currentLocationData = {
+      location: "Location Permission Not Granted",
+      latitude: "",
+      longitude: "",
+      accuracy: ""
+    };
+
+    async function getCurrentGPSLocation() {
+      if (!navigator.geolocation) return currentLocationData;
+      return new Promise(resolve => {
+        navigator.geolocation.getCurrentPosition(
+          position => {
+            currentLocationData = {
+              location: position.coords.latitude.toFixed(6) + ", " + position.coords.longitude.toFixed(6),
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+              accuracy: Math.round(position.coords.accuracy)
+            };
+            resolve(currentLocationData);
+          },
+          () => resolve(currentLocationData),
+          { enableHighAccuracy: true, timeout: 5000, maximumAge: 30000 }
+        );
+      });
+    }
+
+    function formatRemoteRemaining(ms) {
+      const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
+      const days = Math.floor(totalSeconds / 86400);
+      const hours = Math.floor((totalSeconds % 86400) / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+
+      if (days > 0) {
+        return `${days}d ${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
+      }
+      return `${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
+    }
+
+    function updateRemoteDeviceTimerDisplay() {
+      const bar = document.getElementById("deviceRemoteTimerBar");
+      const idEl = document.getElementById("remoteDeviceIdDisplay");
+      const expiryEl = document.getElementById("remoteExpiryDisplay");
+      const modalName = document.getElementById("statusDeviceName");
+      const modalExpiry = document.getElementById("statusExpiryTime");
+
+      if (idEl) idEl.innerText = deviceId || "Unknown";
+
+      if (!expiryEl) return;
+
+      if (!remoteExpiryTimestamp) {
+        expiryEl.innerText = "NO TIMER";
+        if (bar) {
+          bar.classList.remove("timer-active", "timer-expired");
+          bar.classList.add("timer-none");
+        }
+        if (modalName) modalName.innerText = deviceId || "Unknown";
+        if (modalExpiry) modalExpiry.innerText = "NO TIMER";
+        return;
+      }
+
+      const remaining = remoteExpiryTimestamp - Date.now();
+
+      if (remaining <= 0) {
+        expiryEl.innerText = "00:00:00 — EXPIRING";
+        if (bar) {
+          bar.classList.remove("timer-active", "timer-none");
+          bar.classList.add("timer-expired");
+        }
+        if (modalName) modalName.innerText = deviceId || "Unknown";
+        if (modalExpiry) modalExpiry.innerText = "00:00:00";
+        return;
+      }
+
+      const text = formatRemoteRemaining(remaining);
+      expiryEl.innerText = text;
+
+      if (bar) {
+        bar.classList.remove("timer-none", "timer-expired");
+        bar.classList.add("timer-active");
+      }
+      if (modalName) modalName.innerText = deviceId || "Unknown";
+      if (modalExpiry) modalExpiry.innerText = text;
+    }
+
+    function setRemoteDeviceExpiry(expiryDate) {
+      if (!expiryDate) {
+        remoteExpiryTimestamp = null;
+        updateRemoteDeviceTimerDisplay();
+        return;
+      }
+
+      const parsed = new Date(expiryDate).getTime();
+      if (isNaN(parsed)) {
+        remoteExpiryTimestamp = null;
+        const expiryEl = document.getElementById("remoteExpiryDisplay");
+        if (expiryEl) expiryEl.innerText = "INVALID TIMER";
+        return;
+      }
+
+      remoteExpiryTimestamp = parsed;
+      updateRemoteDeviceTimerDisplay();
+    }
+
+    function startRemoteExpiryTimer() {
+      if (remoteExpiryTick) clearInterval(remoteExpiryTick);
+
+      remoteExpiryTick = setInterval(() => {
+        updateRemoteDeviceTimerDisplay();
+
+        // When local display reaches zero, immediately ask Google Script.
+        // The server remains the final authority on expiry/block status.
+        if (remoteExpiryTimestamp && remoteExpiryTimestamp <= Date.now()) {
+          checkDeviceAccessStatus();
+        }
+      }, 1000);
+
+      updateRemoteDeviceTimerDisplay();
+    }
+
+    async function checkDeviceAccessStatus() {
+      if (!deviceId) return null;
+
+      try {
+        const res = await fetch(
+          `${ADMIN_APPROVAL_GAS_URL}?action=check_status&deviceId=${encodeURIComponent(deviceId)}&_cb=${Date.now()}`,
+          { cache: "no-store" }
+        );
+        const data = await res.json();
+
+        // Always read the block timer from Google Script for this deviceId.
+        setRemoteDeviceExpiry(data.expiryDate || "");
+
+        if (data.status === "APPROVED" || data.status === "LIVE") {
+          accessApproved = true;
+          remoteBlockHandled = false;
+          return "APPROVED";
+        }
+
+        if (data.status === "BLOCKED") {
+          accessApproved = false;
+          handleRemoteBlock();
+          return "BLOCKED";
+        }
+
+        accessApproved = false;
+        return data.status || "PENDING";
+      } catch (error) {
+        const expiryEl = document.getElementById("remoteExpiryDisplay");
+        if (expiryEl && !remoteExpiryTimestamp) expiryEl.innerText = "SERVER OFFLINE";
+        return null;
+      }
+    }
+
+    function handleRemoteBlock() {
+      if (remoteBlockHandled) return;
+      remoteBlockHandled = true;
+      accessApproved = false;
+      if (approvalPollTimer) {
+        clearInterval(approvalPollTimer);
+        approvalPollTimer = null;
+      }
+      powerRequestInProgress = false;
+      try { if (typeof cancelTabAudio === "function") cancelTabAudio(); } catch (e) {}
+      try {
+        if (typeof audio1 !== "undefined" && audio1) { audio1.pause(); audio1.currentTime = 0; }
+        if (typeof audio2 !== "undefined" && audio2) { audio2.pause(); audio2.currentTime = 0; }
+      } catch (e) {}
+      stopDeviceHeartbeat();
+      document.body.classList.remove("screen-locked");
+      const animScreen = document.getElementById("introAnimationScreen");
+      const title = document.getElementById("animatedTitle");
+      const subtitle = document.getElementById("animatedSubtitle");
+      if (animScreen && title && subtitle) {
+        animScreen.style.display = "flex";
+        title.innerText = "Audio DJ Console";
+        subtitle.innerText = "BLOCKED BY ADMIN";
+        subtitle.style.display = "block";
+        title.className = "animated-title";
+        subtitle.className = "animated-subtitle";
+        void title.offsetWidth;
+        void subtitle.offsetWidth;
+        title.className = "animated-title play-power-off";
+        subtitle.className = "animated-subtitle play-power-off";
+        playPowerSound("off");
+        setTimeout(() => {
+          animScreen.style.display = "none";
+          showBlockedPowerScreen();
+        }, 3000);
+      } else {
+        showBlockedPowerScreen();
+      }
+    }
+
+    function showBlockedPowerScreen() {
+    const powerScreen = document.getElementById("powerScreen");
+    const lockScreen = document.getElementById("lockScreen");
+    const hintText = document.getElementById("powerHintText");
+    const powerBtn = document.getElementById("mainPowerBtn");
+    
+    if (powerScreen) powerScreen.style.display = "flex";
+    if (lockScreen) lockScreen.style.display = "none";
+    if (hintText) hintText.innerText = "❌ DATE EXPIRED— PRESS POWER TO REQUEST UNBLOCK";
+    if (powerBtn) powerBtn.disabled = false;
+
+    // ১. ব্লকের উপরে ডিভাইস আইডি দেখানোর জন্য এলিমেন্ট তৈরি বা চেক করা
+    let deviceIdContainer = document.getElementById("topDeviceIdDisplay");
+    if (!deviceIdContainer) {
+        deviceIdContainer = document.createElement("div");
+        deviceIdContainer.id = "topDeviceIdDisplay";
+        deviceIdContainer.style.cssText = "font-weight: bold; color: #d9534f; margin-bottom: 10px; font-size: 14px;";
+        // hintText বা ব্লকের উপরে এটি বসিয়ে দেওয়া হচ্ছে
+        if (hintText && hintText.parentNode) {
+            hintText.parentNode.insertBefore(deviceIdContainer, hintText);
+        }
+    }
+
+    // ২. ব্লকের নিচে "For more details please contact suraj" বাটন বা লিংক তৈরি করা
+    let contactBtnContainer = document.getElementById("bottomContactBtn");
+    if (!contactBtnContainer) {
+        contactBtnContainer = document.createElement("div");
+        contactBtnContainer.id = "bottomContactBtn";
+        contactBtnContainer.style.cssText = "margin-top: 15px;";
+        
+        contactBtnContainer.innerHTML = `
+            <a href="https://coding-master-suraj.github.io/hacker/" target="_blank" style="display: inline-block; background-color: #007bff; color: white; padding: 10px 15px; border-radius: 5px; text-decoration: none; font-size: 14px; font-weight: bold;">
+                FOR MORE DETAILS PLEASE CONTACT SURAJ
+            </a>
+        `;
+        
+        // powerBtn বা মেইন বক্সের নিচে এটি যুক্ত করা হচ্ছে
+        if (powerBtn && powerBtn.parentNode) {
+            powerBtn.parentNode.appendChild(contactBtnContainer);
+        }
+    }
+}
+    async function sendDeviceHeartbeat() {
+      if (!deviceId || !accessApproved) return;
+      const powerScreen = document.getElementById("powerScreen");
+      const lockScreen = document.getElementById("lockScreen");
+      if (powerScreen && powerScreen.style.display !== "none") return;
+      if (lockScreen && lockScreen.style.display !== "none") return;
+      try {
+        const loc = await getCurrentGPSLocation();
+        const response = await fetch(ADMIN_APPROVAL_GAS_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({
+            action: "heartbeat",
+            deviceId: deviceId,
+            deviceName: /Mobile|Android|iPhone|iPad/i.test(navigator.userAgent) ? "Mobile Device" : "Desktop PC",
+            location: loc.location,
+            latitude: loc.latitude,
+            longitude: loc.longitude,
+            accuracy: loc.accuracy
+          })
+        });
+        const result = await response.json();
+        if (result.status === "BLOCKED") handleRemoteBlock();
+      } catch (error) {}
+    }
+
+    function startDeviceHeartbeat() {
+      stopDeviceHeartbeat();
+      sendDeviceHeartbeat();
+      heartbeatTimer = setInterval(sendDeviceHeartbeat, 10000);
+    }
+
+    function stopDeviceHeartbeat() {
+      if (heartbeatTimer) {
+        clearInterval(heartbeatTimer);
+        heartbeatTimer = null;
+      }
+    }
+
+    function startAccessMonitor() {
+      if (accessMonitorTimer) clearInterval(accessMonitorTimer);
+      startRemoteExpiryTimer();
+      checkDeviceAccessStatus();
+      accessMonitorTimer = setInterval(checkDeviceAccessStatus, 2000);
+    }
+
+    document.addEventListener("visibilitychange", function () {
+      if (!document.hidden) {
+        checkDeviceAccessStatus();
+        const powerScreen = document.getElementById("powerScreen");
+        const lockScreen = document.getElementById("lockScreen");
+        if (powerScreen && lockScreen && powerScreen.style.display === "none" && lockScreen.style.display === "none") {
+          sendDeviceHeartbeat();
+        }
+      }
+    });
+
+    function playPowerSound(type) {
+      try {
+        if (powerSoundOscillator) {
+          try { powerSoundOscillator.stop(); } catch (e) {}
+          powerSoundOscillator = null;
+        }
+        const ctx = powerSoundContext || (powerSoundContext = new (window.AudioContext || window.webkitAudioContext)());
+        if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        powerSoundOscillator = osc;
+        powerSoundGain = gain;
+        const now = ctx.currentTime;
+        if (type === 'on') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(150, now);
+          osc.frequency.exponentialRampToValueAtTime(880, now + 2.5);
+          gain.gain.setValueAtTime(0, now);
+          gain.gain.linearRampToValueAtTime(0.3, now + 0.3);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 2.9);
+          osc.start(now);
+          osc.stop(now + 3.0);
+        } else if (type === 'off') {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(600, now);
+          osc.frequency.exponentialRampToValueAtTime(40, now + 2.5);
+          gain.gain.setValueAtTime(0.3, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 2.9);
+          osc.start(now);
+          osc.stop(now + 3.0);
+        }
+        osc.onended = () => { if (powerSoundOscillator === osc) powerSoundOscillator = null; };
+      } catch (e) {}
+    }
+
+    async function requestPowerOn() {
+      if (powerRequestInProgress) return;
+      const hintText = document.getElementById("powerHintText");
+      const powerBtn = document.getElementById("mainPowerBtn");
+      powerRequestInProgress = true;
+      if (powerBtn) powerBtn.disabled = true;
+      try {
+        const currentStatus = await checkDeviceAccessStatus();
+        if (currentStatus === "APPROVED") {
+          powerRequestInProgress = false;
+          if (powerBtn) powerBtn.disabled = false;
+          startIntroAnimation();
+          return;
+        }
+        if (currentStatus === "BLOCKED") {
+          hintText.innerText = "Sending unblock request to admin email...";
+          const res = await fetch(ADMIN_APPROVAL_GAS_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({
+              action: "request_power_on",
+              deviceId: deviceId,
+              deviceName: /Mobile|Android|iPhone|iPad/i.test(navigator.userAgent) ? "Mobile Device" : "Desktop PC",
+              location: currentLocationData.location,
+              latitude: currentLocationData.latitude,
+              longitude: currentLocationData.longitude,
+              accuracy: currentLocationData.accuracy
+            })
+          });
+          const data = await res.json();
+          if (data.status === "blocked_request_sent" || data.status === "blocked") {
+            hintText.innerText = "🔓 Unblock request sent to admin email.";
+          } else if (data.status === "APPROVED") {
+            accessApproved = true;
+            remoteBlockHandled = false;
+            startIntroAnimation();
+          }
+          powerRequestInProgress = false;
+          if (powerBtn) powerBtn.disabled = false;
+          return;
+        }
+        hintText.innerText = "Sending access request to email...";
+        const res = await fetch(ADMIN_APPROVAL_GAS_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({
+            action: "request_power_on",
+            deviceId: deviceId,
+            deviceName: /Mobile|Android|iPhone|iPad/i.test(navigator.userAgent) ? "Mobile Device" : "Desktop PC",
+            location: currentLocationData.location,
+            latitude: currentLocationData.latitude,
+            longitude: currentLocationData.longitude,
+            accuracy: currentLocationData.accuracy
+          })
+        });
+        const data = await res.json();
+        if (data.status === "APPROVED") {
+          accessApproved = true;
+          powerRequestInProgress = false;
+          if (powerBtn) powerBtn.disabled = false;
+          startIntroAnimation();
+          return;
+        }
+        if (data.status === "blocked_request_sent" || data.status === "blocked" || data.status === "BLOCKED") {
+          hintText.innerText = "🔓 Unblock request sent to admin email.";
+          powerRequestInProgress = false;
+          if (powerBtn) powerBtn.disabled = false;
+          return;
+        }
+        hintText.innerText = "Waiting for Admin Email Approval...";
+        startApprovalPolling();
+      } catch (err) {
+        hintText.innerText = "Connection Error! Try Again.";
+        powerRequestInProgress = false;
+        if (powerBtn) powerBtn.disabled = false;
+      }
+    }
+
+    function startApprovalPolling() {
+      if (approvalPollTimer) clearInterval(approvalPollTimer);
+      const checkApproval = async () => {
+        try {
+          const res = await fetch(`${ADMIN_APPROVAL_GAS_URL}?action=check_status&deviceId=${encodeURIComponent(deviceId)}`);
+          const data = await res.json();
+          if (data.status === "APPROVED" || data.status === "LIVE") {
+            clearInterval(approvalPollTimer);
+            approvalPollTimer = null;
+            powerRequestInProgress = false;
+            accessApproved = true;
+            remoteBlockHandled = false;
+            const powerBtn = document.getElementById('mainPowerBtn');
+            if (powerBtn) powerBtn.disabled = false;
+            startIntroAnimation();
+          } else if (data.status === "BLOCKED") {
+            clearInterval(approvalPollTimer);
+            approvalPollTimer = null;
+            powerRequestInProgress = false;
+            handleRemoteBlock();
+          }
+        } catch (e) {}
+      };
+      checkApproval();
+      approvalPollTimer = setInterval(checkApproval, 3000);
+    }
+
+    function startIntroAnimation() {
+      if (introStarted) return;
+      introStarted = true;
+      const pScreen = document.getElementById('powerScreen');
+      const animScreen = document.getElementById('introAnimationScreen');
+      const title = document.getElementById('animatedTitle');
+      const subtitle = document.getElementById('animatedSubtitle');
+      pScreen.style.display = 'none';
+      animScreen.style.display = 'flex';
+      title.innerText = "Audio DJ Console";
+      subtitle.innerText = "Powered by Coding Master Suraj";
+      subtitle.style.display = 'block';
+      title.className = 'animated-title';
+      subtitle.className = 'animated-subtitle';
+      void title.offsetWidth;
+      void subtitle.offsetWidth;
+      title.className = 'animated-title play-power-on';
+      subtitle.className = 'animated-subtitle play-power-on';
+      playPowerSound('on');
+      setTimeout(() => {
+        animScreen.style.display = 'none';
+        document.getElementById('lockScreen').style.display = 'flex';
+        document.getElementById('lockError').innerText = "";
+        const passInput = document.getElementById('passInput');
+        const unlockBtn = document.getElementById('unlockBtn');
+        const lockBox = document.getElementById('lockBox');
+        passInput.value = "";
+        passInput.disabled = false;
+        unlockBtn.disabled = false;
+        lockBox.classList.remove('verifying-anim', 'shake-anim');
+        passInput.focus();
+      }, 3000);
+    }
+
+    function powerOffSystem() {
+      targetAlarmTimestamp = null;
+      updateTimerButton();
+      updateRemoteDeviceTimerDisplay();
+      if (approvalPollTimer) {
+        clearInterval(approvalPollTimer);
+        approvalPollTimer = null;
+      }
+      powerRequestInProgress = false;
+      introStarted = false;
+      stopDeviceHeartbeat();
+      const powerBtn = document.getElementById('mainPowerBtn');
+      if (powerBtn) powerBtn.disabled = false;
+      const animScreen = document.getElementById('introAnimationScreen');
+      const title = document.getElementById('animatedTitle');
+      const subtitle = document.getElementById('animatedSubtitle');
+      if (typeof cancelTabAudio === 'function') { try { cancelTabAudio(); } catch (e) {} }
+      if (typeof resetDeck === 'function') {
+        try { resetDeck(1); } catch (e) {}
+        try { resetDeck(2); } catch (e) {}
+      }
+      document.body.classList.remove('screen-locked');
+      animScreen.style.display = 'flex';
+      title.innerText = "Audio DJ Console";
+      subtitle.innerText = "Good Bye!";
+      subtitle.style.display = 'block';
+      title.className = 'animated-title';
+      subtitle.className = 'animated-subtitle';
+      void title.offsetWidth;
+      void subtitle.offsetWidth;
+      title.className = 'animated-title play-power-off';
+      subtitle.className = 'animated-subtitle play-power-off';
+      playPowerSound('off');
+      setTimeout(() => {
+        animScreen.style.display = 'none';
+        document.getElementById('powerScreen').style.display = 'flex';
+        document.getElementById('lockScreen').style.display = 'none';
+        currentPassword = "";
+        document.getElementById('passInput').value = "";
+        document.getElementById('lockError').innerText = "";
+        document.getElementById('powerHintText').innerText = "PRESS TO POWER ON";
+        const passInput = document.getElementById('passInput');
+        const unlockBtn = document.getElementById('unlockBtn');
+        const lockBox = document.getElementById('lockBox');
+        passInput.disabled = false;
+        unlockBtn.disabled = false;
+        lockBox.classList.remove('verifying-anim', 'shake-anim');
+      }, 3000);
+    }
+
+    function clearLockError() {
+      document.getElementById('lockError').innerText = "";
+    }
+
+    function lockConsoleUI() {
+      document.body.classList.add('screen-locked');
+    }
+
+    function openUnlockPrompt() {
+      document.getElementById('lockScreen').style.display = 'flex';
+      document.getElementById('lockError').innerText = "";
+      const passInput = document.getElementById('passInput');
+      const unlockBtn = document.getElementById('unlockBtn');
+      const lockBox = document.getElementById('lockBox');
+      passInput.value = "";
+      passInput.disabled = false;
+      unlockBtn.disabled = false;
+      lockBox.classList.remove('verifying-anim', 'shake-anim');
+      passInput.focus();
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {});
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+      }
+    }
+
+    document.addEventListener('fullscreenchange', () => {
+      const btn = document.getElementById('fullscreenBtn');
+      if (document.fullscreenElement) {
+        btn.innerText = "⛶ Exit Fullscreen";
+      } else {
+        btn.innerText = "⛶ Fullscreen";
+      }
+    });
+
+    async function unlockSystem() {
+      const lockScreen = document.getElementById('lockScreen');
+      if (lockScreen.style.display !== 'flex') return;
+      const passInput = document.getElementById('passInput');
+      const unlockBtn = document.getElementById('unlockBtn');
+      const errBox = document.getElementById('lockError');
+      const lockBox = document.getElementById('lockBox');
+      const enteredPass = passInput.value.trim();
+      if (!enteredPass) {
+        errBox.innerText = "Please enter a password!";
+        lockBox.classList.remove('shake-anim');
+        void lockBox.offsetWidth;
+        lockBox.classList.add('shake-anim');
+        return;
+      }
+      passInput.disabled = true;
+      unlockBtn.disabled = true;
+      lockBox.classList.remove('shake-anim');
+      lockBox.classList.add('verifying-anim');
+      errBox.innerText = "Verifying...";
+      try {
+        const res = await fetch(`${PRESET_GAS_WEB_APP_URL}?action=verify&password=${encodeURIComponent(enteredPass)}`);
+        const data = await res.json();
+        if (data.status === "success") {
+          currentPassword = enteredPass;
+          lockBox.classList.remove('verifying-anim');
+          document.getElementById('lockScreen').style.display = 'none';
+          document.body.classList.remove('screen-locked');
+          errBox.innerText = "";
+          startDeviceHeartbeat();
+          fetchAllPresets();
+        } else {
+          lockBox.classList.remove('verifying-anim');
+          lockBox.classList.add('shake-anim');
+          errBox.innerText = "❌ Incorrect password! Please try again.";
+          passInput.value = "";
+          passInput.disabled = false;
+          unlockBtn.disabled = false;
+          passInput.focus();
+        }
+      } catch (err) {
+        lockBox.classList.remove('verifying-anim');
+        lockBox.classList.add('shake-anim');
+        errBox.innerText = "Connection error! Password server is not responding.";
+        passInput.disabled = false;
+        unlockBtn.disabled = false;
+        passInput.focus();
+      }
+    }
+
+    async function initializeDeviceAccess() {
+      const hintText = document.getElementById("powerHintText");
+      if (hintText) hintText.innerText = "Checking device access...";
+      const status = await checkDeviceAccessStatus();
+      if (status === "APPROVED") {
+        accessApproved = true;
+        if (hintText) hintText.innerText = "✅ DEVICE APPROVED — PRESS POWER TO START";
+      } else if (status === "BLOCKED") {
+        showBlockedPowerScreen();
+      } else if (hintText) {
+        hintText.innerText = "PRESS TO POWER ON — FIRST USE REQUIRES ADMIN APPROVAL";
+      }
+      startAccessMonitor();
+    }
+
+    const frequencies = [
+      20, 25, 31.5, 40, 50, 63, 80, 100, 125, 160, 200, 250,
+      315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150,
+      4000, 5000, 6300, 8000, 10000, 12500, 16000, 18000, 20000
+    ];
+
+    const audio1 = document.getElementById('audio1');
+    const audio2 = document.getElementById('audio2');
+    const file1 = document.getElementById('file1');
+    const file2 = document.getElementById('file2');
+    const resetDeck1Btn = document.getElementById('resetDeck1Btn');
+    const resetDeck2Btn = document.getElementById('resetDeck2Btn');
+    const crossfader = document.getElementById('crossfader');
+    const crossfaderStatus = document.getElementById('crossfaderStatus');
+    const volVal1 = document.getElementById('volVal1');
+    const volVal2 = document.getElementById('volVal2');
+    const eqContainerLeft = document.getElementById('eqSlidersLeft');
+    const eqContainerRight = document.getElementById('eqSlidersRight');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    const tabAudioToggle = document.getElementById('tabAudioToggle');
+    const fileAudioToggle = document.getElementById('fileAudioToggle');
+    const stereoToggle = document.getElementById('stereoToggle');
+    const tabAudioBtn = document.getElementById('tabAudioBtn');
+
+    const deck1Card = document.getElementById('deck1Card');
+    const deck2Card = document.getElementById('deck2Card');
+    const crossfaderCard = document.getElementById('crossfaderCard');
+    const rightEqChannel = document.getElementById('rightEqChannel');
+    const leftEqTitle = document.getElementById('leftEqTitle');
+    const deck1Title = document.getElementById('deck1Title');
+    const folderControls = document.getElementById('folderControls');
+    const folderPlaylistContainer = document.getElementById('folderPlaylistContainer');
+
+    let audioCtx, analyser;
+    let filtersLeft = [], filtersRight = [];
+    let leftSliders = [], rightSliders = [];
+    let loadedLeftValues = [], loadedRightValues = [];
+    let tabGainNode, filesMasterGain, mainMixGain;
+    let gainNode1, gainNode2;
+    let isAudioCtxInitialized = false;
+
+    let tabStream = null;
+    let tabSource = null;
+    let folderAudioFiles = [];
+    let currentFolderIndex = 0; 
+    let dragSrcIndex = null;
+
+    function toggleEchoCheckbox(checkbox) {
+      const sliderVal = parseInt(document.getElementById('echoSlider').value);
+      if (checkbox.checked) {
+        updateEchoFromSlider(sliderVal > 0 ? sliderVal : 30);
+        if (sliderVal === 0) document.getElementById('echoSlider').value = 30;
+      } else {
+        updateEchoFromSlider(0);
+      }
+    }
+
+    function updateEchoFromSlider(val) {
+      const numVal = parseInt(val);
+      document.getElementById('echoValText').innerText = numVal + '%';
+      const checkbox = document.getElementById('echoCheckbox');
+      if (numVal > 0 && !checkbox.checked) {
+        checkbox.checked = true;
+      } else if (numVal === 0) {
+        checkbox.checked = false;
+      }
+      if (delayNode && echoGainNode && audioCtx) {
+        delayNode.delayTime.setValueAtTime(0.25, audioCtx.currentTime);
+        const gainIntensity = (numVal / 100) * 1.8;
+        echoGainNode.gain.setValueAtTime(gainIntensity, audioCtx.currentTime);
+      }
+    }
+
+    stereoToggle.addEventListener('change', function() {
+      const beforeLbl = document.getElementById('stereoLabelBefore');
+      const afterLbl = document.getElementById('stereoLabelAfter');
+      if (this.checked) {
+        beforeLbl.style.display = 'inline';
+        afterLbl.style.display = 'none';
+        rightEqChannel.style.display = 'flex';
+        leftEqTitle.innerText = "Left Channel EQ";
+        leftEqTitle.style.color = "#ff007f";
+      } else {
+        beforeLbl.style.display = 'none';
+        afterLbl.style.display = 'inline';
+        rightEqChannel.style.display = 'none';
+        leftEqTitle.innerText = "Master Equalizer (Mono L+R)";
+        leftEqTitle.style.color = "#00ffcc";
+        syncMonoEqualizer();
+      }
+    });
+
+    fileAudioToggle.addEventListener('change', function() {
+      const beforeLbl = document.getElementById('fileAudioLabelBefore');
+      const afterLbl = document.getElementById('fileAudioLabelAfter');
+      audio1.pause();
+      audio2.pause();
+      if (this.checked) {
+        beforeLbl.style.display = 'inline';
+        afterLbl.style.display = 'none';
+        deck2Card.style.display = 'flex';
+        crossfaderCard.style.display = 'block';
+        deck1Title.innerText = "Deck Audio File Player 1";
+        folderControls.style.display = 'none';
+        resetDeck1Btn.innerText = "➕ Add New File";
+        file1.removeAttribute('webkitdirectory');
+        file1.removeAttribute('directory');
+        file1.classList.remove('folder-mode-input');
+      } else {
+        beforeLbl.style.display = 'none';
+        afterLbl.style.display = 'inline';
+        deck2Card.style.display = 'none';
+        crossfaderCard.style.display = 'none';
+        deck1Title.innerText = "Deck Folder Audio Player";
+        folderControls.style.display = 'flex';
+        resetDeck1Btn.innerText = "➕ Add New Folder";
+        file1.setAttribute('webkitdirectory', '');
+        file1.setAttribute('directory', '');
+        file1.classList.add('folder-mode-input');
+      }
+      resetDeck(1);
+      resetDeck(2);
+      crossfader.value = 50;
+      updateCrossfader();
+    });
+
+    tabAudioToggle.addEventListener('change', function() {
+      const beforeLbl = document.getElementById('tabAudioLabelBefore');
+      const afterLbl = document.getElementById('tabAudioLabelAfter');
+      if (this.checked) {
+        beforeLbl.style.display = 'none';
+        afterLbl.style.display = 'inline';
+        tabAudioBtn.style.display = 'inline-block';
+        if (tabGainNode) tabGainNode.gain.value = 1;
+      } else {
+        beforeLbl.style.display = 'inline';
+        afterLbl.style.display = 'none';
+        tabAudioBtn.style.display = 'none';
+        if (tabGainNode) tabGainNode.gain.value = 0;
+      }
+    });
+
+    file1.addEventListener('change', function() {
+      if (!fileAudioToggle.checked) {
+        folderAudioFiles = Array.from(this.files).filter(f => f.type.startsWith('audio/') || /\.(mp3|wav|ogg|m4a|flac)$/i.test(f.name));
+        if (folderAudioFiles.length > 0) {
+          currentFolderIndex = 0; 
+          renderFolderPlaylistUI();
+          playSelectedTrack(0);
+          updateCrossfader();
+          file1.style.display = 'none';
+          resetDeck1Btn.style.display = 'block';
+        } else {
+          alert("No audio files found in selected folder!");
+        }
+      } else {
+        if (this.files.length > 0) {
+          audio1.src = URL.createObjectURL(this.files[0]);
+          audio1.play();
+          initAudioEngine();
+          file1.style.display = 'none';
+          resetDeck1Btn.style.display = 'block';
+        }
+      }
+    });
+
+    file2.addEventListener('change', function() {
+      if (this.files.length > 0) {
+        audio2.src = URL.createObjectURL(this.files[0]);
+        audio2.play();
+        initAudioEngine();
+        file2.style.display = 'none';
+        resetDeck2Btn.style.display = 'block';
+      }
+    });
+
+    function resetDeck(deckNum) {
+      if (deckNum === 1) {
+        audio1.pause();
+        audio1.removeAttribute('src');
+        audio1.load();
+        file1.value = "";
+        file1.style.display = 'block';
+        resetDeck1Btn.style.display = 'none';
+        folderAudioFiles = [];
+        currentFolderIndex = 0;
+        folderPlaylistContainer.innerHTML = "";
+      } else if (deckNum === 2) {
+        audio2.pause();
+        audio2.removeAttribute('src');
+        audio2.load();
+        file2.value = "";
+        file2.style.display = 'block';
+        resetDeck2Btn.style.display = 'none';
+      }
+      updateCrossfader();
+    }
+
+    function renderFolderPlaylistUI() {
+      folderPlaylistContainer.innerHTML = "";
+      folderAudioFiles.forEach((file, idx) => {
+        const item = document.createElement('div');
+        item.className = `playlist-item ${idx === currentFolderIndex ? 'active' : ''}`;
+        item.draggable = true;
+        item.dataset.index = idx;
+        item.innerHTML = `
+          <span><span class="drag-handle"><i class="fa-solid fa-grip-vertical"></i></span> ${idx + 1}.&nbsp;&nbsp;&nbsp;&nbsp;${file.name}</span>
+          ${idx === currentFolderIndex ? '<i class="fa-solid fa-volume-high"></i>' : ''}
+        `;
+        item.addEventListener('click', (e) => {
+          if (!e.target.classList.contains('drag-handle') && !e.target.closest('.drag-handle')) {
+            playSelectedTrack(idx);
+          }
+        });
+        item.addEventListener('dragstart', handleDragStart);
+        item.addEventListener('dragover', handleDragOver);
+        item.addEventListener('drop', handleDrop);
+        item.addEventListener('dragend', handleDragEnd);
+        folderPlaylistContainer.appendChild(item);
+      });
+      setTimeout(scrollToActiveTrack, 50);
+    }
+
+    function scrollToActiveTrack() {
+      const activeItem = folderPlaylistContainer.querySelector('.playlist-item.active');
+      if (activeItem) {
+        folderPlaylistContainer.scrollTop = activeItem.offsetTop - folderPlaylistContainer.offsetTop;
+      }
+    }
+
+    function handleDragStart(e) {
+      dragSrcIndex = parseInt(this.dataset.index);
+      this.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    }
+
+    function handleDragOver(e) {
+      if (e.preventDefault) e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      return false;
+    }
+
+    function handleDrop(e) {
+      if (e.stopPropagation) e.stopPropagation();
+      const dropIndex = parseInt(this.dataset.index);
+      if (dragSrcIndex !== null && dragSrcIndex !== dropIndex) {
+        const movedItem = folderAudioFiles.splice(dragSrcIndex, 1)[0];
+        folderAudioFiles.splice(dropIndex, 0, movedItem);
+        if (dragSrcIndex === currentFolderIndex) {
+          currentFolderIndex = dropIndex;
+        } else if (dragSrcIndex < currentFolderIndex && dropIndex >= currentFolderIndex) {
+          currentFolderIndex--;
+        } else if (dragSrcIndex > currentFolderIndex && dropIndex <= currentFolderIndex) {
+          currentFolderIndex++;
+        }
+        renderFolderPlaylistUI();
+      }
+      return false;
+    }
+
+    function handleDragEnd() {
+      this.classList.remove('dragging');
+    }
+
+    function playSelectedTrack(index) {
+      index = parseInt(index);
+      if (folderAudioFiles[index]) {
+        currentFolderIndex = index; 
+        renderFolderPlaylistUI();
+        audio1.src = URL.createObjectURL(folderAudioFiles[currentFolderIndex]);
+        audio1.play();
+        initAudioEngine();
+      }
+    }
+
+    function playNextTrack() {
+      if (folderAudioFiles.length > 0) {
+        currentFolderIndex++;
+        if (currentFolderIndex >= folderAudioFiles.length) currentFolderIndex = 0;
+        renderFolderPlaylistUI();
+        audio1.src = URL.createObjectURL(folderAudioFiles[currentFolderIndex]);
+        audio1.play();
+      }
+    }
+
+    function playPrevTrack() {
+      if (folderAudioFiles.length > 0) {
+        currentFolderIndex--;
+        if (currentFolderIndex < 0) currentFolderIndex = folderAudioFiles.length - 1;
+        renderFolderPlaylistUI();
+        audio1.src = URL.createObjectURL(folderAudioFiles[currentFolderIndex]);
+        audio1.play();
+      }
+    }
+
+    audio1.addEventListener('ended', function() {
+      if (!fileAudioToggle.checked && folderAudioFiles.length > 0) {
+        playNextTrack();
+      }
+    });
+
+    function syncMonoEqualizer() {
+      leftSliders.forEach((slider, index) => {
+        const val = parseFloat(slider.value);
+        if (rightSliders[index]) rightSliders[index].value = val;
+        if (filtersLeft[index]) filtersLeft[index].gain.value = val;
+        if (filtersRight[index]) filtersRight[index].gain.value = val;
+      });
+      const leftSelect = document.getElementById('presetListLeft');
+      const rightSelect = document.getElementById('presetListRight');
+      if (leftSelect && rightSelect) rightSelect.value = leftSelect.value;
+      loadedRightValues = [...leftSliders.map(s => parseFloat(s.value))];
+      checkSliderChanges('right');
+    }
+
+    function toggleTabAudio() {
+      if (tabStream) {
+        cancelTabAudio();
+      } else {
+        captureTabAudio();
+      }
+    }
+
+    async function captureTabAudio() {
+      try {
+        const constraints = { video: true, audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } };
+        tabStream = await navigator.mediaDevices.getDisplayMedia(constraints);
+        const audioTrack = tabStream.getAudioTracks()[0];
+        if (!audioTrack) {
+          alert("Please select 'Share tab audio' to capture tab audio!");
+          tabStream.getTracks().forEach(track => track.stop());
+          tabStream = null;
+          return;
+        }
+        initAudioEngine();
+        tabSource = audioCtx.createMediaStreamSource(new MediaStream([audioTrack]));
+        if (!tabGainNode) tabGainNode = audioCtx.createGain();
+        tabGainNode.gain.value = 1;
+        tabSource.connect(tabGainNode);
+        tabGainNode.connect(mainMixGain);
+        tabAudioBtn.innerText = "❌ Cancel Tab Audio";
+        tabAudioBtn.classList.add('active');
+        audioTrack.onended = () => { cancelTabAudio(); };
+      } catch (err) {
+        cancelTabAudio();
+      }
+    }
+
+    function cancelTabAudio() {
+      if (tabStream) {
+        tabStream.getTracks().forEach(track => track.stop());
+        tabStream = null;
+      }
+      if (tabSource) {
+        try { tabSource.disconnect(); } catch (e) {}
+        tabSource = null;
+      }
+      tabAudioBtn.innerText = "🎵 Link Chrome Tab";
+      tabAudioBtn.classList.remove('active');
+    }
+
+    function createFilterChain() {
+      return frequencies.map((freq) => {
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'peaking';
+        filter.frequency.value = freq;
+        filter.Q.value = 1.4;
+        filter.gain.value = 0;
+        return filter;
+      });
+    }
+
+    function connectChain(chain) {
+      for (let i = 0; i < chain.length - 1; i++) {
+        chain[i].connect(chain[i + 1]);
+      }
+    }
+
+    function initAudioEngine() {
+      if (isAudioCtxInitialized) return;
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AudioContext();
+      filesMasterGain = audioCtx.createGain();
+      filesMasterGain.gain.value = 1.0;
+      gainNode1 = audioCtx.createGain();
+      gainNode2 = audioCtx.createGain();
+      mainMixGain = audioCtx.createGain();
+      mainMixGain.gain.value = 1.0;
+      delayNode = audioCtx.createDelay(2.0);
+      delayNode.delayTime.value = 0.25;
+      echoGainNode = audioCtx.createGain();
+      echoGainNode.gain.value = 0;
+
+      const source1 = audioCtx.createMediaElementSource(audio1);
+      const source2 = audioCtx.createMediaElementSource(audio2);
+      source1.connect(gainNode1);
+      source2.connect(gainNode2);
+      gainNode1.connect(filesMasterGain);
+      gainNode2.connect(filesMasterGain);
+      filesMasterGain.connect(mainMixGain);
+
+      const splitter = audioCtx.createChannelSplitter(2);
+      const merger = audioCtx.createChannelMerger(2);
+      filtersLeft = createFilterChain();
+      filtersRight = createFilterChain();
+      connectChain(filtersLeft);
+      connectChain(filtersRight);
+      mainMixGain.connect(splitter);
+      splitter.connect(filtersLeft[0], 0);
+      filtersLeft[filtersLeft.length - 1].connect(merger, 0, 0);
+      splitter.connect(filtersRight[0], 1);
+      filtersRight[filtersRight.length - 1].connect(merger, 0, 1);
+
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 128;
+      merger.connect(analyser);
+      analyser.connect(audioCtx.destination);
+      merger.connect(delayNode);
+      delayNode.connect(echoGainNode);
+      echoGainNode.connect(merger);
+
+      isAudioCtxInitialized = true;
+      leftSliders.forEach((s, idx) => { if (filtersLeft[idx]) filtersLeft[idx].gain.value = parseFloat(s.value); });
+      rightSliders.forEach((s, idx) => { if (filtersRight[idx]) filtersRight[idx].gain.value = parseFloat(s.value); });
+      updateCrossfader();
+      renderVisualizer();
+    }
+
+    [audio1, audio2].forEach(audio => {
+      audio.addEventListener('play', () => {
+        initAudioEngine();
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+      });
+    });
+
+    function updateCrossfader() {
+      const val = parseFloat(crossfader.value);
+      const v1 = Math.cos((val / 100) * (Math.PI / 2));
+      const v2 = Math.sin((val / 100) * (Math.PI / 2));
+      if (gainNode1 && gainNode2) {
+        gainNode1.gain.value = v1;
+        gainNode2.gain.value = v2;
+      }
+      if (fileAudioToggle.checked) {
+        volVal1.innerText = Math.round(v1 * 100) + '%';
+      } else {
+        volVal1.innerText = `Files: ${folderAudioFiles.length}`;
+      }
+      volVal2.innerText = Math.round(v2 * 100) + '%';
+      if (val === 50) {
+        crossfaderStatus.innerText = "Center (50/50)";
+        crossfaderStatus.style.color = "#00ffcc";
+      } else if (val < 50) {
+        crossfaderStatus.innerText = fileAudioToggle.checked ? `Deck Audio File Player 1 (${Math.round(v1*100)}%)` : `Folder Audio Player (${Math.round(v1*100)}%)`;
+        crossfaderStatus.style.color = "#ff007f";
+      } else {
+        crossfaderStatus.innerText = `Deck Audio File Player 2 (${Math.round(v2*100)}%)`;
+        crossfaderStatus.style.color = "#00bfff";
+      }
+    }
+
+    function checkSliderChanges(channel) {
+      const sliders = channel === 'left' ? leftSliders : rightSliders;
+      const loadedValues = channel === 'left' ? loadedLeftValues : loadedRightValues;
+      const saveBtn = document.getElementById(channel === 'left' ? 'saveBtnLeft' : 'saveBtnRight');
+      let changed = false;
+      if (loadedValues.length === 0) {
+        changed = sliders.some(s => parseFloat(s.value) !== 0);
+      } else {
+        changed = sliders.some((s, idx) => parseFloat(s.value) !== loadedValues[idx]);
+      }
+      saveBtn.disabled = !changed;
+    }
+
+    function buildEqualizerUI(container, filtersArray, slidersArray, isLeft) {
+      frequencies.forEach((freq, index) => {
+        const group = document.createElement('div');
+        group.className = 'slider-group';
+        const slider = document.createElement('input');
+        slider.type = 'range';
+        slider.min = '-12'; slider.max = '12'; slider.value = '0'; slider.step = '0.5';
+        slidersArray.push(slider);
+
+        let labelText = freq >= 1000 ? (freq / 1000) + 'k' : freq;
+        const label = document.createElement('span');
+        label.innerText = labelText;
+
+        const updateSliderVal = (newVal) => {
+          let val = parseFloat(newVal);
+          val = Math.max(-12, Math.min(12, val));
+          slider.value = val;
+          if (filtersArray[index]) filtersArray[index].gain.value = val;
+          if (!stereoToggle.checked) {
+            if (isLeft && rightSliders[index]) {
+              rightSliders[index].value = val;
+              if (filtersRight[index]) filtersRight[index].gain.value = val;
+            } else if (!isLeft && leftSliders[index]) {
+              leftSliders[index].value = val;
+              if (filtersLeft[index]) filtersLeft[index].gain.value = val;
+            }
+          }
+          const channelKey = isLeft ? 'left' : 'right';
+          const selectElem = document.getElementById(channelKey === 'left' ? 'presetListLeft' : 'presetListRight');
+          if (selectElem && selectElem.value !== "") selectElem.value = "";
+          checkSliderChanges(channelKey);
+          if (!stereoToggle.checked) checkSliderChanges('right');
+        };
+
+        slider.addEventListener('input', (e) => updateSliderVal(e.target.value));
+        group.addEventListener('wheel', (e) => {
+          e.preventDefault();
+          updateSliderVal(parseFloat(slider.value) + (e.deltaY < 0 ? 0.5 : -0.5));
+        }, { passive: false });
+
+        group.appendChild(slider);
+        group.appendChild(label);
+        container.appendChild(group);
+      });
+    }
+
+    buildEqualizerUI(eqContainerLeft, filtersLeft, leftSliders, true);
+    buildEqualizerUI(eqContainerRight, filtersRight, rightSliders, false);
+
+    function renderVisualizer() {
+      requestAnimationFrame(renderVisualizer);
+
+      canvas.width = canvas.clientWidth;
+      canvas.height = canvas.clientHeight;
+
+      const totalHeight = canvas.height;
+      const baselineY = totalHeight * 0.58;
+      const numBars = 36;
+      const barSpacing = 2;
+      const barWidth = (canvas.width - (numBars * barSpacing)) / numBars;
+
+      const maxBlocks = 14;
+      const blockHeight = 2.5;
+      const blockGap = 1.2;
+
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const bufferLength = analyser ? analyser.frequencyBinCount : numBars;
+      const dataArray = new Uint8Array(bufferLength);
+      if (analyser) analyser.getByteFrequencyData(dataArray);
+
+      if (!renderVisualizer.peakCaps || renderVisualizer.peakCaps.length !== numBars) {
+        renderVisualizer.peakCaps = new Array(numBars).fill(0);
+      }
+      const peakCaps = renderVisualizer.peakCaps;
+
+      ctx.beginPath();
+      ctx.moveTo(0, baselineY);
+      ctx.lineTo(canvas.width, baselineY);
+      ctx.strokeStyle = '#00aaff';
+      ctx.lineWidth = 1.5;
+      ctx.shadowColor = '#00aaff';
+      ctx.shadowBlur = 8;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      for (let i = 0; i < numBars; i++) {
+        const dataIndex = Math.floor((i / numBars) * bufferLength);
+        const audioVal = dataArray[dataIndex] || 0;
+        
+        const activeBlocks = Math.floor((audioVal / 255) * maxBlocks);
+
+        if (activeBlocks >= peakCaps[i]) {
+          peakCaps[i] = activeBlocks;
+        } else {
+          peakCaps[i] -= 0.15;
+          if (peakCaps[i] < 0) peakCaps[i] = 0;
+        }
+
+        const x = i * (barWidth + barSpacing) + barSpacing / 2;
+        const hue = (i / numBars) * 280 + 270;
+        const blockColor = `hsl(${hue % 360}, 100%, 55%)`;
+
+        for (let b = 0; b < maxBlocks; b++) {
+          const y = baselineY - (b + 1) * (blockHeight + blockGap);
+
+          if (b < activeBlocks) {
+            ctx.fillStyle = blockColor;
+            ctx.shadowColor = blockColor;
+            ctx.shadowBlur = 4;
+          } else {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
+            ctx.shadowBlur = 0;
+          }
+          ctx.fillRect(x, y, barWidth, blockHeight);
+        }
+        ctx.shadowBlur = 0;
+
+        const peakBlockIndex = Math.floor(peakCaps[i]);
+        if (peakBlockIndex > 0) {
+          const peakY = baselineY - (peakBlockIndex + 1) * (blockHeight + blockGap);
+          ctx.fillStyle = blockColor;
+          ctx.shadowColor = blockColor;
+          ctx.shadowBlur = 6;
+          ctx.fillRect(x, peakY, barWidth, blockHeight);
+          ctx.shadowBlur = 0;
+        }
+
+        for (let b = 0; b < activeBlocks; b++) {
+          const yReflect = baselineY + b * (blockHeight + blockGap) + 3;
+          const alpha = Math.max(0, 0.35 - (b / maxBlocks) * 0.32);
+          
+          ctx.fillStyle = `hsla(${hue % 360}, 100%, 55%, ${alpha})`;
+          ctx.fillRect(x, yReflect, barWidth, blockHeight);
+        }
+      }
+    }
+
+    async function fetchAllPresets(selectChannel = null, selectPresetName = null) {
+      if (!currentPassword) return;
+
+      const selectLeft = document.getElementById('presetListLeft');
+      const selectRight = document.getElementById('presetListRight');
+
+      try {
+        const res = await fetch(`${PRESET_GAS_WEB_APP_URL}?action=list&password=${encodeURIComponent(currentPassword)}`);
+        const data = await res.json();
+
+        selectLeft.innerHTML = '<option value="" disabled selected>-- Select Preset --</option>';
+        selectRight.innerHTML = '<option value="" disabled selected>-- Select Preset --</option>';
+
+        if (data.status === "success" && data.presets.length > 0) {
+          let matchedFilename = null;
+
+          data.presets.forEach(item => {
+            const opt1 = document.createElement('option');
+            opt1.value = item.filename;
+            opt1.innerText = item.presetName;
+            selectLeft.appendChild(opt1);
+
+            const opt2 = document.createElement('option');
+            opt2.value = item.filename;
+            opt2.innerText = item.presetName;
+            selectRight.appendChild(opt2);
+
+            if (selectPresetName && item.presetName.toLowerCase() === selectPresetName.toLowerCase()) {
+              matchedFilename = item.filename;
+            }
+          });
+
+          if (selectChannel && matchedFilename) {
+            const targetSelect = selectChannel === 'left' ? selectLeft : selectRight;
+            targetSelect.value = matchedFilename;
+            loadSelectedPreset(selectChannel);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching presets:", err);
+      }
+    }
+
+
+
+    async function loadSelectedPreset(channel) {
+      if (!currentPassword) return;
+
+      const selectElem = document.getElementById(channel === 'left' ? 'presetListLeft' : 'presetListRight');
+      const fileName = selectElem.value;
+      if (!fileName) return;
+
+      try {
+        const res = await fetch(`${PRESET_GAS_WEB_APP_URL}?action=get&fileName=${encodeURIComponent(fileName)}&password=${encodeURIComponent(currentPassword)}`);
+        const data = await res.json();
+
+        if (data.status === "success" && data.values) {
+          const sliders = channel === 'left' ? leftSliders : rightSliders;
+          const filters = channel === 'left' ? filtersLeft : filtersRight;
+
+          data.values.forEach((val, i) => {
+            if (sliders[i]) sliders[i].value = val;
+            if (filters[i]) filters[i].gain.value = val;
+          });
+
+          if (channel === 'left') {
+            loadedLeftValues = [...data.values];
+          } else {
+            loadedRightValues = [...data.values];
+          }
+          checkSliderChanges(channel);
+
+          if (!stereoToggle.checked) {
+            syncMonoEqualizer();
+          }
+        }
+      } catch (err) {
+        alert("Error loading preset: " + err);
+      }
+    }
+
+    async function savePresetToDrive(channel) {
+      if (!currentPassword) return;
+
+      const saveBtn = document.getElementById(channel === 'left' ? 'saveBtnLeft' : 'saveBtnRight');
+      if (saveBtn.disabled) return;
+
+      const presetName = prompt(`Enter name for Preset:`);
+      if (!presetName || presetName.trim() === "") return;
+
+      const cleanPresetName = presetName.trim();
+      const sliders = channel === 'left' ? leftSliders : rightSliders;
+      const values = sliders.map(s => parseFloat(s.value));
+
+      try {
+        await fetch(PRESET_GAS_WEB_APP_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            password: currentPassword,
+            presetName: cleanPresetName,
+            values: values
+          })
+        });
+
+        alert(`Preset "${cleanPresetName}" saved!`);
+        
+        if (channel === 'left') {
+          loadedLeftValues = [...values];
+        } else {
+          loadedRightValues = [...values];
+        }
+        checkSliderChanges(channel);
+
+        setTimeout(() => fetchAllPresets(channel, cleanPresetName), 1000);
+      } catch (err) {
+        alert("Error saving preset: " + err);
+      }
+    }
+
+    window.addEventListener('load', () => {
+      initializeDeviceAccess();
+    });
+  </script>
+</body>
+
+
+
+
+
+
+
+
+
+
+
+
+</html>
