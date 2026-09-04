@@ -1002,17 +1002,23 @@
 
     /* =================================================
        WINDOWS / CHROME DEVICE NOTIFICATION SYSTEM
-       - Admin Custom Message -> only this Device ID
-       - Block Timer -> once per day when Power ON
+       - Custom Message: ONLY when admin changes/sends a message
+       - Block Timer: every Power ON, 2 minutes after startup
+       - Timer change: immediate Alert + Windows notification while app is ON
        ================================================= */
     let remoteCustomMessage = "";
     let notificationMessageInitialized = false;
     let notificationPermissionRequested = false;
 
+    // Timer notification state
+    let timerNotificationBaseline = null;
+    let timerPowerOnSession = 0;
+    let timerPowerOnDelay = null;
+    let timerWasPoweredOn = false;
+
     async function requestWindowsNotificationPermission() {
       try {
         if (!("Notification" in window)) return false;
-
         if (Notification.permission === "granted") return true;
 
         if (Notification.permission === "default" && !notificationPermissionRequested) {
@@ -1030,18 +1036,23 @@
     function showWindowsDeviceNotification(title, body, tag) {
       try {
         if (!("Notification" in window)) return;
-
         if (Notification.permission !== "granted") return;
 
         new Notification(title, {
           body: body,
-          tag: tag || ("dj-console-" + deviceId),
+          tag: tag || ("dj-console-" + deviceId + "-" + Date.now()),
           renotify: true,
           silent: false
         });
       } catch (e) {
         console.log("Windows notification error:", e);
       }
+    }
+
+    function showBrowserAlert(title, body) {
+      try {
+        window.alert(title + "\n\n" + body);
+      } catch (e) {}
     }
 
     function isConsolePoweredOn() {
@@ -1056,91 +1067,192 @@
       );
     }
 
-    function showRemoteCustomMessageNotification(message, force) {
+    /* -------------------------------------------------
+       CUSTOM MESSAGE
+       IMPORTANT:
+       - Do NOT show old message when app starts.
+       - Do NOT show it just because Power is pressed.
+       - Show only when server value changes while this
+         exact device is online/powered on.
+       ------------------------------------------------- */
+    function initializeNotificationMessage(message) {
+      remoteCustomMessage = String(message || "").trim();
+      notificationMessageInitialized = true;
+    }
+
+    function showRemoteCustomMessageNotification(message) {
       message = String(message || "").trim();
-      if (!message) return;
-
-      // First server read only initializes the stored value.
-      // This prevents an old message from popping up before Power ON.
       if (!notificationMessageInitialized) {
-        remoteCustomMessage = message;
-        notificationMessageInitialized = true;
-
-        if (!force) return;
+        initializeNotificationMessage(message);
+        return;
       }
 
-      // Same message is not repeatedly notified.
-      if (!force && message === remoteCustomMessage) return;
+      // Empty message = no popup.
+      if (!message) {
+        remoteCustomMessage = "";
+        return;
+      }
+
+      // Only a NEW/CHANGED admin message is shown.
+      if (message === remoteCustomMessage) return;
 
       remoteCustomMessage = message;
 
-      if (!isConsolePoweredOn() && !force) return;
+      // Message is intended for the exact device only.
+      if (!isConsolePoweredOn()) return;
+
+      const body = message;
 
       showWindowsDeviceNotification(
         "🎧 DJ Console Message",
-        message,
-        "dj-console-message-" + deviceId
+        body,
+        "dj-console-message-" + deviceId + "-" + Date.now()
       );
+
+      // Same message is ALSO shown as browser alert.
+      showBrowserAlert("🎧 DJ Console Message", body);
     }
 
-    function getTodayNotificationKey() {
-      const d = new Date();
-      return (
-        d.getFullYear() + "-" +
-        String(d.getMonth() + 1).padStart(2, "0") + "-" +
-        String(d.getDate()).padStart(2, "0")
-      );
-    }
-
+    /* -------------------------------------------------
+       BLOCK TIMER HELPERS
+       Every Power ON gets its own 2-minute timer.
+       No daily localStorage restriction.
+       ------------------------------------------------- */
     function formatNotificationRemaining(ms) {
-      const totalMinutes = Math.max(0, Math.floor(ms / 60000));
-      const days = Math.floor(totalMinutes / 1440);
-      const hours = Math.floor((totalMinutes % 1440) / 60);
-      const minutes = totalMinutes % 60;
+      const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+      const days = Math.floor(totalSeconds / 86400);
+      const hours = Math.floor((totalSeconds % 86400) / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
 
       if (days > 0) {
-        return `${days}d ${hours}h ${minutes}m`;
+        return `${days}d ${String(hours).padStart(2,'0')}h ${String(minutes).padStart(2,'0')}m`;
       }
 
-      return `${hours}h ${minutes}m`;
+      return `${String(hours).padStart(2,'0')}h ${String(minutes).padStart(2,'0')}m ${String(seconds).padStart(2,'0')}s`;
     }
 
-    function showDailyBlockTimerNotification(expiryDate) {
-      if (!expiryDate || !deviceId) return;
-
+    function formatTimerExpiryText(expiryDate) {
       const expiry = new Date(expiryDate);
-      if (isNaN(expiry.getTime())) return;
+      if (isNaN(expiry.getTime())) return "INVALID TIMER";
 
-      const now = Date.now();
-      const expiryMs = expiry.getTime();
-
-      if (expiryMs <= now) return;
-
-      const today = getTodayNotificationKey();
-      const storageKey = "dj-console-block-timer-notified-" + deviceId;
-      const alreadyShown = localStorage.getItem(storageKey);
-
-      if (alreadyShown === today) return;
-
-      const remaining = expiryMs - now;
-      const expiryText = expiry.toLocaleString([], {
+      return expiry.toLocaleString([], {
         year: "numeric",
         month: "short",
         day: "numeric",
         hour: "2-digit",
         minute: "2-digit"
       });
+    }
 
-      showWindowsDeviceNotification(
-        "🔒 DJ Console Block Timer",
+    function showBlockTimerAlertAndNotification(expiryDate, reason) {
+      if (!expiryDate) return;
+
+      const expiry = new Date(expiryDate);
+      if (isNaN(expiry.getTime())) return;
+
+      const remaining = expiry.getTime() - Date.now();
+      if (remaining <= 0) return;
+
+      const expiryText = formatTimerExpiryText(expiry);
+      const remainingText = formatNotificationRemaining(remaining);
+
+      let title = "🔒 DJ Console Block Timer";
+      if (reason === "updated") {
+        title = "🔄 DJ Console Timer Updated";
+      }
+
+      const body =
         "Device: " + deviceId +
         "\nBlock Time: " + expiryText +
-        "\nRemaining: " + formatNotificationRemaining(remaining),
-        "dj-console-block-timer-" + deviceId + "-" + today
+        "\nRemaining: " + remainingText;
+
+      showWindowsDeviceNotification(
+        title,
+        body,
+        "dj-console-timer-" + deviceId + "-" + reason + "-" + Date.now()
       );
 
-      // Mark only after the notification call.
-      localStorage.setItem(storageKey, today);
+      showBrowserAlert(title, body);
+    }
+
+    function scheduleBlockTimerAfterPowerOn() {
+      if (timerPowerOnDelay) {
+        clearTimeout(timerPowerOnDelay);
+        timerPowerOnDelay = null;
+      }
+
+      timerPowerOnSession++;
+      const thisSession = timerPowerOnSession;
+      timerWasPoweredOn = true;
+
+      // 2 minutes after every Power ON.
+      timerPowerOnDelay = setTimeout(function () {
+        if (thisSession !== timerPowerOnSession) return;
+        if (!isConsolePoweredOn()) return;
+
+        if (remoteExpiryTimestamp) {
+          showBlockTimerAlertAndNotification(
+            new Date(remoteExpiryTimestamp).toISOString(),
+            "power-on"
+          );
+        }
+      }, 120000);
+    }
+
+    function cancelBlockTimerPowerOnDelay() {
+      if (timerPowerOnDelay) {
+        clearTimeout(timerPowerOnDelay);
+        timerPowerOnDelay = null;
+      }
+      timerPowerOnSession++;
+      timerWasPoweredOn = false;
+    }
+
+    /*
+       Detect admin timer changes.
+       First server value is only used as a baseline.
+       Later changes while the app is ON immediately show
+       Alert + Windows notification.
+    */
+    function handleRemoteTimerChange(expiryDate) {
+      const normalized = expiryDate
+        ? new Date(expiryDate).getTime()
+        : null;
+
+      if (normalized !== null && isNaN(normalized)) return;
+
+      if (timerNotificationBaseline === null && !timerWasPoweredOn) {
+        timerNotificationBaseline = normalized;
+        return;
+      }
+
+      const previous = timerNotificationBaseline;
+      timerNotificationBaseline = normalized;
+
+      // No change.
+      if (previous === normalized) return;
+
+      // Ignore the first value during the current session.
+      if (previous === null && normalized !== null && !timerWasPoweredOn) return;
+
+      // Admin changed/removed timer while the app is running.
+      if (isConsolePoweredOn()) {
+        if (normalized !== null) {
+          showBlockTimerAlertAndNotification(
+            new Date(normalized).toISOString(),
+            "updated"
+          );
+        } else {
+          const body = "Device: " + deviceId + "\nBlock Timer: REMOVED";
+          showWindowsDeviceNotification(
+            "🔄 DJ Console Timer Updated",
+            body,
+            "dj-console-timer-removed-" + deviceId + "-" + Date.now()
+          );
+          showBrowserAlert("🔄 DJ Console Timer Updated", body);
+        }
+      }
     }
 
     async function prepareDeviceNotifications() {
@@ -1470,6 +1582,7 @@
 
     function setRemoteDeviceExpiry(expiryDate) {
       if (!expiryDate) {
+        handleRemoteTimerChange("");
         remoteExpiryTimestamp = null;
         updateRemoteDeviceTimerDisplay();
         return;
@@ -1483,6 +1596,7 @@
         return;
       }
 
+      handleRemoteTimerChange(new Date(parsed).toISOString());
       remoteExpiryTimestamp = parsed;
       updateRemoteDeviceTimerDisplay();
     }
@@ -1519,10 +1633,7 @@
         // Always read the Custom Message for THIS exact deviceId.
         // It is never broadcast to other devices.
         if (typeof data.customMessage !== "undefined") {
-          showRemoteCustomMessageNotification(
-            data.customMessage || "",
-            false
-          );
+          showRemoteCustomMessageNotification(data.customMessage || "");
         }
 
         if (data.status === "APPROVED" || data.status === "LIVE") {
@@ -1656,10 +1767,7 @@
         }
 
         if (typeof result.customMessage !== "undefined") {
-          showRemoteCustomMessageNotification(
-            result.customMessage || "",
-            false
-          );
+          showRemoteCustomMessageNotification(result.customMessage || "");
         }
 
         if (result.status === "BLOCKED") handleRemoteBlock();
@@ -1752,22 +1860,8 @@
           if (powerBtn) powerBtn.disabled = false;
 
           startIntroAnimation();
-
-          // Show the currently assigned message immediately when this
-          // exact device is powered on.
-          if (remoteCustomMessage) {
-            showRemoteCustomMessageNotification(
-              remoteCustomMessage,
-              true
-            );
-          }
-
-          // Show the Google block timer once per calendar day.
-          showDailyBlockTimerNotification(
-            remoteExpiryTimestamp
-              ? new Date(remoteExpiryTimestamp).toISOString()
-              : ""
-          );
+          // Timer notification is scheduled 2 minutes after every Power ON.
+          scheduleBlockTimerAfterPowerOn();
 
           return;
         }
@@ -1798,19 +1892,7 @@
               notificationMessageInitialized = true;
             }
             startIntroAnimation();
-
-            if (remoteCustomMessage) {
-              showRemoteCustomMessageNotification(
-                remoteCustomMessage,
-                true
-              );
-            }
-
-            showDailyBlockTimerNotification(
-              remoteExpiryTimestamp
-                ? new Date(remoteExpiryTimestamp).toISOString()
-                : ""
-            );
+            scheduleBlockTimerAfterPowerOn();
           }
           powerRequestInProgress = false;
           if (powerBtn) powerBtn.disabled = false;
@@ -1843,19 +1925,7 @@
           }
 
           startIntroAnimation();
-
-          if (remoteCustomMessage) {
-            showRemoteCustomMessageNotification(
-              remoteCustomMessage,
-              true
-            );
-          }
-
-          showDailyBlockTimerNotification(
-            remoteExpiryTimestamp
-              ? new Date(remoteExpiryTimestamp).toISOString()
-              : ""
-          );
+            scheduleBlockTimerAfterPowerOn();
 
           return;
         }
@@ -1896,19 +1966,7 @@
             const powerBtn = document.getElementById('mainPowerBtn');
             if (powerBtn) powerBtn.disabled = false;
             startIntroAnimation();
-
-            if (remoteCustomMessage) {
-              showRemoteCustomMessageNotification(
-                remoteCustomMessage,
-                true
-              );
-            }
-
-            showDailyBlockTimerNotification(
-              remoteExpiryTimestamp
-                ? new Date(remoteExpiryTimestamp).toISOString()
-                : ""
-            );
+            scheduleBlockTimerAfterPowerOn();
           } else if (data.status === "BLOCKED") {
             clearInterval(approvalPollTimer);
             approvalPollTimer = null;
@@ -1956,6 +2014,7 @@
     }
 
     function powerOffSystem() {
+      cancelBlockTimerPowerOnDelay();
       targetAlarmTimestamp = null;
       updateTimerButton();
       updateRemoteDeviceTimerDisplay();
@@ -2847,50 +2906,17 @@
       initializeDeviceAccess();
     });
   </script>
-
-
-
-
-
-<script>
-        // 1. Right-click (Context Menu) disable korar jonno
-        document.addEventListener('contextmenu', function(e) {
-            e.preventDefault();
-          
-        });
-
-        // 2. F12, Ctrl+Shift+I, Ctrl+U jaise shortcuts disable korar jonno
-        document.addEventListener('keydown', function(e) {
-            // F12 key
-            if (e.key === 'F12') {
-                e.preventDefault();
-                return false;
-            }
-            
-            // Ctrl + Shift + I / J / C ebong Ctrl + U
-            if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c')) {
-                e.preventDefault();
-                return false;
-            }
-            
-            // Ctrl + U (View Page Source)
-            if (e.ctrlKey && (e.key === 'U' || e.key === 'u')) {
-                e.preventDefault();
-                return false;
-            }
-            
-            // Ctrl + S (Save Page)
-            if (e.ctrlKey && (e.key === 'S' || e.key === 's')) {
-                e.preventDefault();
-                return false;
-            }
-        });
-    </script>
-
-
-  
-
-  
 </body>
+
+
+
+
+
+
+
+
+
+
+
 
 </html>
