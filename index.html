@@ -1610,50 +1610,114 @@
         // When local display reaches zero, immediately ask Google Script.
         // The server remains the final authority on expiry/block status.
         if (remoteExpiryTimestamp && remoteExpiryTimestamp <= Date.now()) {
-          checkDeviceAccessStatus();
+          // Do not create repeated requests every second while the server
+          // is slow. One expiry verification at a time is enough.
+          checkDeviceAccessStatus({ waitForCurrent: false });
         }
       }, 1000);
 
       updateRemoteDeviceTimerDisplay();
     }
 
-    async function checkDeviceAccessStatus() {
+    /*
+      FAST / SAFE DEVICE CHECK
+      - Prevents overlapping check_status requests.
+      - Adds a short timeout so one stuck Google request cannot freeze the UI.
+      - Keeps the existing Google Script action/status system unchanged.
+      - A manual/important check can wait for the current request; background
+        checks simply reuse the current request instead of starting another one.
+    */
+    let deviceStatusRequest = null;
+    let deviceStatusAbortController = null;
+    const DEVICE_STATUS_TIMEOUT_MS = 5000;
+
+    async function checkDeviceAccessStatus(options = {}) {
       if (!deviceId) return null;
 
-      try {
-        const res = await fetch(
-          `${ADMIN_APPROVAL_GAS_URL}?action=check_status&deviceId=${encodeURIComponent(deviceId)}&_cb=${Date.now()}`,
-          { cache: "no-store" }
-        );
-        const data = await res.json();
+      const waitForCurrent = options.waitForCurrent !== false;
 
-        // Always read the block timer from Google Script for this deviceId.
-        setRemoteDeviceExpiry(data.expiryDate || "");
+      // If another check is already running, never create a second request.
+      if (deviceStatusRequest) {
+        return waitForCurrent ? deviceStatusRequest : null;
+      }
 
-        // Always read the Custom Message for THIS exact deviceId.
-        // It is never broadcast to other devices.
-        if (typeof data.customMessage !== "undefined") {
-          showRemoteCustomMessageNotification(data.customMessage || "");
-        }
+      const request = (async () => {
+        let timeoutId = null;
 
-        if (data.status === "APPROVED" || data.status === "LIVE") {
-          accessApproved = true;
-          remoteBlockHandled = false;
-          return "APPROVED";
-        }
+        try {
+          deviceStatusAbortController = new AbortController();
+          timeoutId = setTimeout(() => {
+            try { deviceStatusAbortController.abort(); } catch (e) {}
+          }, DEVICE_STATUS_TIMEOUT_MS);
 
-        if (data.status === "BLOCKED") {
+          const url =
+            `${ADMIN_APPROVAL_GAS_URL}?action=check_status` +
+            `&deviceId=${encodeURIComponent(deviceId)}` +
+            `&_cb=${Date.now()}`;
+
+          const res = await fetch(url, {
+            method: "GET",
+            cache: "no-store",
+            credentials: "omit",
+            signal: deviceStatusAbortController.signal
+          });
+
+          if (!res.ok) throw new Error("HTTP " + res.status);
+
+          const data = await res.json();
+
+          // Always read the block timer from Google Script for this deviceId.
+          setRemoteDeviceExpiry(data.expiryDate || "");
+
+          // Always read the Custom Message for THIS exact deviceId.
+          // It is never broadcast to other devices.
+          if (typeof data.customMessage !== "undefined") {
+            showRemoteCustomMessageNotification(data.customMessage || "");
+          }
+
+          if (data.status === "APPROVED" || data.status === "LIVE") {
+            accessApproved = true;
+            remoteBlockHandled = false;
+            return "APPROVED";
+          }
+
+          if (data.status === "BLOCKED") {
+            accessApproved = false;
+            handleRemoteBlock();
+            return "BLOCKED";
+          }
+
           accessApproved = false;
-          handleRemoteBlock();
-          return "BLOCKED";
-        }
+          return data.status || "PENDING";
 
-        accessApproved = false;
-        return data.status || "PENDING";
-      } catch (error) {
-        const expiryEl = document.getElementById("remoteExpiryDisplay");
-        if (expiryEl && !remoteExpiryTimestamp) expiryEl.innerText = "SERVER OFFLINE";
-        return null;
+        } catch (error) {
+          // Timeout/network failure should not be treated as BLOCKED.
+          // Keep the last known approval state so a temporary server delay
+          // does not incorrectly lock the console.
+          const expiryEl = document.getElementById("remoteExpiryDisplay");
+          if (expiryEl && !remoteExpiryTimestamp) {
+            expiryEl.innerText =
+              error && error.name === "AbortError"
+                ? "SERVER TIMEOUT"
+                : "SERVER OFFLINE";
+          }
+          return null;
+
+        } finally {
+          if (timeoutId) clearTimeout(timeoutId);
+          deviceStatusAbortController = null;
+        }
+      })();
+
+      deviceStatusRequest = request;
+
+      try {
+        return await request;
+      } finally {
+        // Only clear our own request. This avoids a race with a newer request.
+        if (deviceStatusRequest === request) {
+          deviceStatusRequest = null;
+        }
       }
     }
 
@@ -1790,8 +1854,15 @@
     function startAccessMonitor() {
       if (accessMonitorTimer) clearInterval(accessMonitorTimer);
       startRemoteExpiryTimer();
-      checkDeviceAccessStatus();
-      accessMonitorTimer = setInterval(checkDeviceAccessStatus, 2000);
+
+      // First check is allowed to complete normally.
+      checkDeviceAccessStatus({ waitForCurrent: true });
+
+      // Background checks never pile up. If the previous request is still
+      // running, this tick is skipped automatically.
+      accessMonitorTimer = setInterval(() => {
+        checkDeviceAccessStatus({ waitForCurrent: false });
+      }, 3000);
     }
 
     document.addEventListener("visibilitychange", function () {
